@@ -1,2 +1,2 @@
 # Z-PNN
-translation in PyTorch of Z-PNN algorithm about G. Scarpa's paper
+Z-PNN algorithm translation in PyTorch of G. Scarpa's paper
