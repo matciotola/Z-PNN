@@ -4,14 +4,14 @@ from skimage.transform import resize
 from interp23tap import interp23tap
 
 
-def view(I_MS, I_PAN, out, ratio, net_scope):
+def view(I_MS, I_PAN, out, ratio):
     Q_MS = np.quantile(I_MS, (0.02, 0.98), (0, 1), keepdims=True)
     Q_PAN = np.quantile(I_PAN, (0.02, 0.98), (0, 1), keepdims=True)
 
     ms_shape = (I_MS.shape[0] * ratio, I_MS.shape[1] * ratio, I_MS.shape[2])
 
-    I_MS_LR_4x = resize(I_MS, ms_shape, order=0)[net_scope:-net_scope, net_scope:-net_scope, :]
-    I_interp = interp23tap(I_MS, ratio)[net_scope:-net_scope, net_scope:-net_scope, :]
+    I_MS_LR_4x = resize(I_MS, ms_shape, order=0)
+    I_interp = interp23tap(I_MS, ratio)
 
     DP = out - I_interp
     Q_d = np.quantile(abs(DP), 0.98, (0, 1))

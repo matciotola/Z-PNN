@@ -58,15 +58,17 @@ if __name__ == '__main__':
 
     ## Reshape of images for torch workflow
 
-    cut_size = int(s.net_scope / 2)
+    cut_size = s.net_scope
 
     I_in = np.moveaxis(I_in, -1, 0)
     I_in = np.expand_dims(I_in, axis=0)
+    I_inp = np.copy(I_in)
     I_in = I_in[:, :, cut_size:-cut_size, cut_size:-cut_size]
 
     cut_size = int(s.net_scope)
 
     I_in = torch.from_numpy(I_in).float()
+    I_inp = torch.from_numpy(I_inp).float()
 
     spec_ref = I_in[:, :-1, cut_size:-cut_size, cut_size:-cut_size]
     struct_ref = torch.unsqueeze(I_in[:, -1, cut_size:-cut_size, cut_size:-cut_size], dim=0)
@@ -88,10 +90,10 @@ if __name__ == '__main__':
 
     min_loss = 1000
 
-    path_min_loss = 'temp/'
-    if os.path.exists(path_min_loss) == False:
-        os.mkdir(path_min_loss)
-    path_min_loss = path_min_loss + 'weights.tar'
+    temp_path = 'temp/'
+    if os.path.exists(temp_path) == False:
+        os.mkdir(temp_path)
+    path_min_loss = temp_path + 'weights.tar'
 
     ## Training
 
@@ -111,16 +113,21 @@ if __name__ == '__main__':
 
 
     ## Testing
-
+    I_inp = I_inp.to(device)
     s.net.load_state_dict(torch.load(path_min_loss))
-    outputs = s.net(I_in)
+    outputs = s.net(I_inp)
 
     RGB = (4, 2, 1)
     out = outputs.cpu().detach().numpy()
     out = np.squeeze(out)
     out = np.moveaxis(out, 0, -1)
     out = out * 2**s.nbits
+    out = np.clip(out, 0, out.max())
 
-    view(I_MS, I_PAN, out, s.ratio, s.net_scope)
+    view(I_MS, I_PAN, out, s.ratio)
+
+    out = out.astype(np.uint16)
+    save_path = temp_path + test_path.split(os.sep)[-1].split('.')[0] + '_Z-PNN_wFT.mat'
+    io.savemat(save_path, {'I_MS': out})
 
 

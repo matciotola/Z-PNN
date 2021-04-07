@@ -13,7 +13,7 @@ def input_preparation(ms, pan, ratio, nbits, pad_size):
 
     img_in = np.concatenate([ms, pan], axis=-1)/max_value
 
-    img_in = np.pad(img_in,((int(pad_size/2), int(pad_size/2)), (int(pad_size/2), int(pad_size/2)), (0,0)), 'edge')
+    img_in = np.pad(img_in,((pad_size, pad_size), (pad_size, pad_size), (0,0)), 'edge')
 
     return img_in
 
