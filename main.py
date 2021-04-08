@@ -96,6 +96,8 @@ if __name__ == '__main__':
     path_min_loss = temp_path + 'weights.tar'
 
     ## Training
+    history_loss_spec = []
+    history_loss_struct = []
 
     for epoch in range(epochs):
         optimizer.zero_grad()
@@ -106,6 +108,9 @@ if __name__ == '__main__':
         loss.backward()
         optimizer.step()
         print('Epoch: %.3d, loss: %.5f' % (epoch + 1, loss))
+
+        history_loss_spec.append(loss_spec.item())
+        history_loss_struct.append(loss_struct.item())
 
         if loss_spec < min_loss:
             min_loss = loss_spec
@@ -130,4 +135,10 @@ if __name__ == '__main__':
     save_path = temp_path + test_path.split(os.sep)[-1].split('.')[0] + '_Z-PNN_wFT.mat'
     io.savemat(save_path, {'I_MS': out})
 
-
+    plt.figure()
+    ax1 = plt.subplot(2,1,1)
+    plt.plot(history_loss_spec)
+    ax1.set_title('Spectral Loss:')
+    ax2 = plt.subplot(2, 1, 2, sharex=ax1)
+    plt.plot(history_loss_struct)
+    ax2.set_title('Structural Loss:')
