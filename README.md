@@ -6,8 +6,8 @@ a deep learning method for Pansharpening based on unsupervised and full-resoluti
  - Matteo Ciotola (matteo.ciotola@unina.it);
  - Sergio Vitale  (sergio.vitale@uniparthenope.it);
  - Antonio Mazza (antonio.mazza@unina.it);
- - Giovanni Poggi   (poggi@.unina.it);
- - Giuseppe Scarpa  (giscarpa@.unina.it).
+ - Giovanni Poggi   (poggi@unina.it);
+ - Giuseppe Scarpa  (giscarpa@unina.it).
  
  
 ## License
