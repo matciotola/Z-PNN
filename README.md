@@ -3,11 +3,11 @@
 a deep learning method for Pansharpening based on an unsupervised and full-resolution framework training.
 
 ## Team members
- Matteo Ciotola (matteo.ciotola@unina.it);
- Sergio Vitale  (sergio.vitale@uniparthenope.it);
- Antonio Mazza (antonio.mazza@unina.it);
- Giovanni Poggi   (poggi@.unina.it);
- Giuseppe Scarpa  (giscarpa@.unina.it).
+ - Matteo Ciotola (matteo.ciotola@unina.it);
+ - Sergio Vitale  (sergio.vitale@uniparthenope.it);
+ - Antonio Mazza (antonio.mazza@unina.it);
+ - Giovanni Poggi   (poggi@.unina.it);
+ - Giuseppe Scarpa  (giscarpa@.unina.it).
  
  
 ## License
