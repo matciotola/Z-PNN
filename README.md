@@ -44,7 +44,7 @@ The unique way to test this algorithm is through a `.mat` file. It must contain:
 The easiest command to use the algorithm on full resolution data:
 
 ```
-python main.py -i path_to_mat_file -s sensor_name -o output_root  
+python main.py -i path_to_mat_file -s sensor_name 
 ```
 Several options are possible. Please refer to the parser help for more details:
 
