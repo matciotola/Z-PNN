@@ -1,144 +1,240 @@
+import argparse
+import gc
 import os
-import scipy.io as io
+import shutil
+from tqdm import tqdm
+
 import numpy as np
+import scipy.io as io
 import torch
 import torch.optim as optim
 
-from interp23tap import interp23tap
-from resize_images import resize_images
-from sensor import Sensor
 import network
-from input_preparation import input_preparation
-from matplotlib import pyplot as plt
-from show_results import view
+import utils
+from input_prepocessing import input_preparation, resize_images
+from sensor import Sensor
+from spectral_tools import generate_mtf_variables
 
-if __name__ == '__main__':
 
-    ## Hyperparameters definition
-    reduceResFlag = False
+def main_zpnn(args):
+    # Parameter definitions
 
-    epochs = 100
-    beta = 2e-4
-    spatial_gain = (1, 12)
-    threshold = 0.06
-    learning_rate = 1
+    test_path = args.input
+    sensor = args.sensor
+    out_dir = args.out_dir
+    epochs = args.epochs
 
-    ## Test tile path
-    test_path = '/home/matteo/Scrivania/PNN/Zoom_PNN_advanced_v0/Datasets-ZPNN/WV3_Adelaide_crops/Adelaide_4_zoom.mat'
+    gpu_number = str(args.gpu_number)
+    use_cpu = args.use_cpu
+    reduce_res_flag = args.RR
+    coregistration_flag = args.coregistration
+    save_losses_trend_flag = args.save_loss_trend
 
-    ## Torch configuration
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    os.environ["CUDA_VISIBLE_DEVICES"] = gpu_number
 
-    ## Load test images
+    # Hyperparameters definition
+    semi_width = 8
+
+    # Torch configuration
+    device = torch.device("cuda" if torch.cuda.is_available() and not use_cpu else "cpu")
+
+    # Load test images
     temp = io.loadmat(test_path)
 
-    I_PAN = temp['I_PAN'].astype('float64')
-    I_MS = temp['I_MS_LR'].astype('float64')
-    sensor = temp['sensor'][0]
-    ratio = int(temp['ratio'][0][0])
+    I_PAN = temp['I_PAN'].astype('float32')
+    I_MS = temp['I_MS_LR'].astype('float32')
 
-    ## Wald Protocol
-    if reduceResFlag == True:
-        I_MS_LR, I_PAN = resize_images()
-
-    ## class "Sensor" definition -> PNN network definition
+    # class "Sensor" definition and PNN network definition
     s = Sensor(sensor)
+    net = network.PNN(s.nbands + 1, s.kernels, s.net_scope)
 
-    ## Load tuned network
-    weight_path = 'weights/' + s.sensor + '_PNNplus_model.tar'
-    s.net.load_state_dict(torch.load(weight_path))
+    # Wald's Protocol
+    if reduce_res_flag:
+        I_MS, I_PAN = resize_images(I_MS, I_PAN, s.ratio, s.sensor)
 
-    ## Losses definition
-    LSpec = network.SpectralLoss(s.ratio, s.sensor, I_PAN, I_MS, device)
-    LStruct = network.StructuralLoss(s.ratio, beta, threshold, spatial_gain)
-
-    ## Input preparation
-
+    # Input preparation
     I_in = input_preparation(I_MS, I_PAN, s.ratio, s.nbits, s.net_scope)
 
-    ## Reshape of images for torch workflow
-
-    cut_size = s.net_scope
-
+    # Images reshaping for PyTorch workflow
     I_in = np.moveaxis(I_in, -1, 0)
     I_in = np.expand_dims(I_in, axis=0)
     I_inp = np.copy(I_in)
-    I_in = I_in[:, :, cut_size:-cut_size, cut_size:-cut_size]
-
-    cut_size = int(s.net_scope)
+    I_in = I_in[:, :, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
 
     I_in = torch.from_numpy(I_in).float()
     I_inp = torch.from_numpy(I_inp).float()
 
-    spec_ref = I_in[:, :-1, cut_size:-cut_size, cut_size:-cut_size]
-    struct_ref = torch.unsqueeze(I_in[:, -1, cut_size:-cut_size, cut_size:-cut_size], dim=0)
+    threshold = utils.local_corr_mask(I_in, s.ratio, s.sensor, device, semi_width)
+    threshold = threshold.float()
 
-    ## Fitting strategy definition
+    spec_ref = I_in[:, :-1, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
+    struct_ref = torch.unsqueeze(I_in[:, -1, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope], dim=0)
+    threshold = threshold[:, :, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
 
-    optimizer = optim.SGD(s.net.parameters(), lr=learning_rate, momentum=0.9)
+    # Loading of pre-trained weights
+    weight_path = 'weights/' + s.sensor + '_Z-PNN_model.tar'
+    net.load_state_dict(torch.load(weight_path))
 
-    s.net = s.net.to(device)
+    # Losses definition
+    if coregistration_flag:
+        LSpec = network.SpectralLoss(generate_mtf_variables(s.ratio, sensor, I_PAN, I_MS),
+                                     s.net_scope,
+                                     I_PAN.shape,
+                                     s.ratio,
+                                     device)
+    else:
+        LSpec = network.SpectralLossNocorr(generate_mtf_variables(s.ratio, sensor, I_PAN, I_MS),
+                                           s.net_scope,
+                                           I_PAN.shape,
+                                           s.ratio,
+                                           device)
+
+    LStruct = network.StructuralLoss(s.ratio, device)
+
+    # Fitting strategy definition
+    net = net.to(device)
+    optimizer = optim.Adam(net.parameters(), lr=s.learning_rate)
+    net.train()
+
+    # Moving everything on the device
     I_in = I_in.to(device)
     spec_ref = spec_ref.to(device)
     struct_ref = struct_ref.to(device)
+    threshold = threshold.to(device)
 
     LSpec = LSpec.to(device)
     LSpec.mask = LSpec.mask.to(device)
     LStruct = LStruct.to(device)
 
-    ## Best model path implementation
-
-    min_loss = 1000
-
+    # Best model path implementation
     temp_path = 'temp/'
-    if os.path.exists(temp_path) == False:
+    if not os.path.exists(temp_path):
         os.mkdir(temp_path)
-    path_min_loss = temp_path + 'weights.tar'
+    path_min_loss = temp_path + 'weights_' + test_path.split(os.sep)[-1].split('.')[0] + '.tar'
 
-    ## Training
-    history_loss_spec = []
-    history_loss_struct = []
+    # Training
+    history_loss = np.zeros(epochs)
+    history_loss_spec = np.zeros(epochs)
+    history_loss_struct = np.zeros(epochs)
 
-    for epoch in range(epochs):
-        optimizer.zero_grad()
-        outputs = s.net(I_in)
-        loss_spec = LSpec(outputs, spec_ref)
-        loss_struct = LStruct(outputs, struct_ref)
-        loss = loss_spec + loss_struct
-        loss.backward()
-        optimizer.step()
-        print('Epoch: %.3d, loss: %.5f' % (epoch + 1, loss))
+    min_loss = np.inf
 
-        history_loss_spec.append(loss_spec.item())
-        history_loss_struct.append(loss_struct.item())
+    pbar = tqdm(range(epochs), dynamic_ncols=True, initial=1)
 
-        if loss_spec < min_loss:
-            min_loss = loss_spec
-            torch.save(s.net.state_dict(), path_min_loss)
+    for epoch in pbar:
 
+        running_loss = 0.0
+        running_spec_loss = 0.0
+        running_struct_loss = 0.0
 
-    ## Testing
+        for i in range(I_in.shape[0]):
+            inputs = I_in[i, :, :, :].view([1, I_in.size()[1], I_in.size()[2], I_in.size()[3]])
+            labels_spec = spec_ref[i, :, :, :].view([1, spec_ref.size()[1], spec_ref.size()[2], spec_ref.size()[3]])
+            labels_struct = struct_ref[i, :, :, :].view(
+                [1, struct_ref.size()[1], struct_ref.size()[2], struct_ref.size()[3]])
+
+            optimizer.zero_grad()
+            outputs = net(inputs)
+            loss_spec = LSpec(outputs, labels_spec)
+            loss_struct, loss_struct_no_threshold = LStruct(outputs, labels_struct, threshold)
+            loss = loss_spec + s.beta * loss_struct
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+            running_spec_loss += loss_spec.item()
+            running_struct_loss += loss_struct_no_threshold
+
+        if running_loss < min_loss:
+            min_loss = running_loss
+            torch.save(net.state_dict(), path_min_loss)
+        history_loss[epoch] = running_loss
+        history_loss_spec[epoch] = running_spec_loss
+        history_loss_struct[epoch] = running_struct_loss
+        pbar.set_postfix(
+            {'Overall Loss': running_loss, 'Spectral Loss': running_spec_loss, 'Structural Loss': running_struct_loss})
+
+    # Output Folder creation
+
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+
+    # Testing
     I_inp = I_inp.to(device)
-    s.net.load_state_dict(torch.load(path_min_loss))
-    outputs = s.net(I_inp)
+    net.load_state_dict(torch.load(path_min_loss))
+    net.eval()
+    outputs = net(I_inp)
 
-    RGB = (4, 2, 1)
     out = outputs.cpu().detach().numpy()
     out = np.squeeze(out)
     out = np.moveaxis(out, 0, -1)
-    out = out * 2**s.nbits
+    out = out * (2 ** s.nbits)
     out = np.clip(out, 0, out.max())
 
-    view(I_MS, I_PAN, out, s.ratio)
-
     out = out.astype(np.uint16)
-    save_path = temp_path + test_path.split(os.sep)[-1].split('.')[0] + '_Z-PNN_wFT.mat'
+    save_path = out_dir + test_path.split(os.sep)[-1].split('.')[0] + '_Z-PNN.mat'
     io.savemat(save_path, {'I_MS': out})
 
-    plt.figure()
-    ax1 = plt.subplot(2,1,1)
-    plt.plot(history_loss_spec)
-    ax1.set_title('Spectral Loss:')
-    ax2 = plt.subplot(2, 1, 2, sharex=ax1)
-    plt.plot(history_loss_struct)
-    ax2.set_title('Structural Loss:')
+    torch.cuda.empty_cache()
+    if save_losses_trend_flag:
+        io.savemat(
+            out_dir + test_path.split(os.sep)[-1].split('.')[0] + '_losses_trend.mat',
+            {
+                'overall_loss': history_loss,
+                'spectral_loss': history_loss_spec,
+                'strucutral_loss: ': history_loss_struct
+            }
+        )
+
+    gc.collect()
+    shutil.rmtree(temp_path, ignore_errors=True)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog='Z-PNN',
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description='Z-PNN is a deep learning algorithm for remote sensing '
+                                                 'imagery which performs pansharpening.',
+                                     epilog='''\
+Reference: 
+Pansharpening by convolutional neural networks in the full resolution framework
+M. Ciotola, S. Vitale, A. Mazza, G. Poggi, G. Scarpa 
+                                
+Authors: 
+Image Processing Research Group of University Federico II of Naples 
+('GRIP-UNINA')
+                                     '''
+                                     )
+    optional = parser._action_groups.pop()
+    requiredNamed = parser.add_argument_group('required named arguments')
+
+    requiredNamed.add_argument("-i", "--input", type=str, required=True,
+                               help='The path of the .mat file which contains the MS '
+                                    'and PAN images. For more details, please refer '
+                                    'to the GitHub documentation.')
+
+    requiredNamed.add_argument('-s', '--sensor', type=str, required=True, choices=["WV3", "WV2", 'GE1'],
+                               help='The sensor that has acquired the test image. Available sensors are '
+                                    'WorldView-3 (WV3), WorldView-2 (WV2), GeoEye1 (GE1)')
+
+    default_out_path = 'Outputs/'
+    optional.add_argument("-o", "--out_dir", type=str, default=default_out_path,
+                          help='The directory in which save the outcome.')
+    optional.add_argument("--epochs", type=int, default=200, help='Number of the epochs with which perform the '
+                                                                  'fine-tuning of the algorithm.')
+    optional.add_argument('-n_gpu', "--gpu_number", type=int, default=0, help='Number of the GPU on which perform the '
+                                                                              'algorithm.')
+    optional.add_argument("--use_cpu", action="store_true",
+                          help='Force the system to use CPU instead of GPU. It could solve OOM problems, but the '
+                               'algorithm will be slower.')
+    optional.add_argument("--RR", action="store_true", help='For evaluation only. The algorithm '
+                                                            'will be performed at reduced '
+                                                            'resolution.')
+    optional.add_argument("--coregistration", action="store_true", help="Enable the coregistration feature.")
+    optional.add_argument("--save_loss_trend", action="store_true", help="Option to save the trend of losses "
+                                                                         "(For Debugging Purpose).")
+
+    parser._action_groups.append(optional)
+    arguments = parser.parse_args()
+
+    main_zpnn(arguments)

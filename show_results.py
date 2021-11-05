@@ -1,27 +1,33 @@
 from matplotlib import pyplot as plt
 import numpy as np
 from skimage.transform import resize
-from interp23tap import interp23tap
+from interpolator_tools import interp23tap
 
 
-def view(I_MS, I_PAN, out, ratio):
-    Q_MS = np.quantile(I_MS, (0.02, 0.98), (0, 1), keepdims=True)
-    Q_PAN = np.quantile(I_PAN, (0.02, 0.98), (0, 1), keepdims=True)
+def view(starting_img_ms, img_pan, algorithm_outcome, ratio):
 
-    ms_shape = (I_MS.shape[0] * ratio, I_MS.shape[1] * ratio, I_MS.shape[2])
+    q_min = 0.02
+    q_max = 0.98
 
-    I_MS_LR_4x = resize(I_MS, ms_shape, order=0)
-    I_interp = interp23tap(I_MS, ratio)
+    Q_MS = np.quantile(starting_img_ms, (q_min, q_max), (0, 1), keepdims=True)
+    Q_PAN = np.quantile(img_pan, (q_min, q_max), (0, 1), keepdims=True)
 
-    DP = out - I_interp
-    Q_d = np.quantile(abs(DP), 0.98, (0, 1))
+    ms_shape = (starting_img_ms.shape[0] * ratio, starting_img_ms.shape[1] * ratio, starting_img_ms.shape[2])
 
-    RGB = (4, 2, 1)
-    RYB = (4, 3, 1)
+    I_MS_LR_4x = resize(starting_img_ms, ms_shape, order=0)
+    I_interp = interp23tap(starting_img_ms, ratio)
 
+    DP = algorithm_outcome - I_interp
+    Q_d = np.quantile(abs(DP), q_max, (0, 1))
+    if starting_img_ms.shape[-1] == 8:
+        RGB = (4, 2, 1)
+        RYB = (4, 3, 1)
+    else:
+        RGB = (2, 1, 0)
+        RYB = (2, 3, 0)
     plt.figure()
     ax1 = plt.subplot(2, 4, 1)
-    plt.imshow(I_PAN - Q_PAN[0, :, :] / (Q_PAN[1, :, :] - Q_PAN[0, :, :]), cmap='gray')
+    plt.imshow(img_pan - Q_PAN[0, :, :] / (Q_PAN[1, :, :] - Q_PAN[0, :, :]), cmap='gray')
     ax1.set_title('PAN')
 
     T = (I_MS_LR_4x - Q_MS[0, :, :]) / (Q_MS[1, :, :] - Q_MS[0, :, :])
@@ -35,7 +41,7 @@ def view(I_MS, I_PAN, out, ratio):
     plt.imshow(T[:, :, RYB])
     ax6.set_title('MS (RYB)')
 
-    T = (out - Q_MS[0, :, :]) / (Q_MS[1, :, :] - Q_MS[0, :, :])
+    T = (algorithm_outcome - Q_MS[0, :, :]) / (Q_MS[1, :, :] - Q_MS[0, :, :])
     T = np.clip(T, 0, 1)
 
     ax3 = plt.subplot(2, 4, 3, sharex=ax1, sharey=ax1)

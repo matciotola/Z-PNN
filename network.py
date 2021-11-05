@@ -1,20 +1,19 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-from generate_MTF_variables import generate_MTF_variables
 from math import floor, ceil
 import numpy as np
-from utils import net_scope
-from xcorr import xcorr_torch as xcorr
+from cross_correlation import xcorr_torch as ccorr
+
 
 class PNN(nn.Module):
     def __init__(self, in_channels, kernels, scope):
         super(PNN, self).__init__()
 
-        ##Network variables
+        # Network variables
         self.scope = scope
 
-        ##Network structure
+        # Network structure
         self.conv1 = nn.Conv2d(in_channels, 48, kernels[0])
         self.conv2 = nn.Conv2d(48, 32, kernels[1])
         self.conv3 = nn.Conv2d(32, in_channels - 1, kernels[2])
@@ -28,63 +27,53 @@ class PNN(nn.Module):
 
 
 class SpectralLoss(nn.Module):
-    def __init__(self, ratio, sensor, PAN, MS, device, mask=None):
+    def __init__(self, mtf, net_scope, pan_shape, ratio, device, mask=None):
 
         # Class initialization
         super(SpectralLoss, self).__init__()
-
+        kernel = mtf[0]
         # Parameters definition
-        self.sensor = sensor
-        if (sensor == 'QB') or (sensor == 'GeoEye1') or (sensor == 'Ikonos') or (sensor == 'IKONOS'):
-            self.nbands = 4
-        elif (sensor == 'WV2') or (sensor == 'WV3'):
-            self.nbands = 8
-
-        if (sensor == 'QB') or (sensor == 'GeoEye1') or (sensor == 'WV2') or (sensor == 'WV3'):
-            kernels = [9, 5, 5]
-        elif (sensor == 'Ikonos') or (sensor == 'IKONOS'):
-            kernels = [5, 5, 5]
-        self.net_scope = net_scope(kernels)
-
-        self.ratio = int(ratio)
+        self.nbands = kernel.shape[-1]
+        self.net_scope = net_scope
         self.device = device
-
+        self.ratio = ratio
 
         # Conversion of filters in Tensor
-        MTF_kern, self.MTF_r, self.MTF_c = generate_MTF_variables(ratio, sensor, PAN, MS)
-        self.pad = floor((MTF_kern.shape[0] - 1) / 2)
+        self.MTF_r = mtf[1]
+        self.MTF_c = mtf[2]
+        self.pad = floor((kernel.shape[0] - 1) / 2)
 
-        MTF_kern = np.moveaxis(MTF_kern, -1, 0)
-        MTF_kern = np.expand_dims(MTF_kern, axis = 1)
+        kernel = np.moveaxis(kernel, -1, 0)
+        kernel = np.expand_dims(kernel, axis=1)
 
-        self.MTF_kern = torch.from_numpy(MTF_kern).type(torch.float32)
-
+        kernel = torch.from_numpy(kernel).type(torch.float32)
 
         # DepthWise-Conv2d definition
         self.depthconv = nn.Conv2d(in_channels=self.nbands,
                                    out_channels=self.nbands,
                                    groups=self.nbands,
-                                   kernel_size=self.MTF_kern.shape,
+                                   kernel_size=kernel.shape,
                                    bias=False)
 
-        self.depthconv.weight.data = self.MTF_kern
+        self.depthconv.weight.data = kernel
         self.depthconv.weight.requires_grad = False
 
+        self.loss = nn.L1Loss(reduction='sum')
+
         # Mask definition
-        if mask != None:
+        if mask is not None:
             self.mask = mask
         else:
-            self.mask = torch.ones((1, self.nbands, PAN.shape[-2]-(self.net_scope+self.pad)*2, PAN.shape[-1]-(self.net_scope+self.pad)*2))
+            self.mask = torch.ones((1, self.nbands, pan_shape[-2] - (self.net_scope + self.pad) * 2,
+                                    pan_shape[-1] - (self.net_scope + self.pad) * 2), device=self.device)
 
     def forward(self, outputs, labels):
 
         x = self.depthconv(outputs)
-        ## TO DO: assign a dynamic range to valid region
-        labels = labels[:,:, 20:-20,20:-20]
+
+        labels = labels[:, :, self.pad:-self.pad, self.pad:-self.pad]
         y = torch.zeros(x.shape, device=self.device)
         W_ = torch.zeros(x.shape, device=self.device)
-
-
 
         for b in range(self.nbands):
             y[:, b, self.MTF_r[b]::self.ratio, self.MTF_c[b]::self.ratio] = labels[:, b, 2::self.ratio, 2::self.ratio]
@@ -92,82 +81,95 @@ class SpectralLoss(nn.Module):
 
         W_ = W_ / torch.sum(W_)
 
-        L = torch.sum((x - y)**2 * W_, dim=(-2, -1))
-        L = torch.mean(L)
+        x = x * W_
+        y = y * W_
+        L = self.loss(x, y)
+
+        return L
+
+
+class SpectralLossNocorr(nn.Module):
+    def __init__(self, mtf, net_crop, pan_shape, ratio, device, mask=None):
+
+        # Class initialization
+        super(SpectralLossNocorr, self).__init__()
+        kernel = mtf[0]
+        # Parameters definition
+        self.nbands = kernel.shape[-1]
+        self.net_scope = net_crop
+        self.device = device
+        self.ratio = ratio
+
+        # Conversion of filters in Tensor
+        self.MTF_r = 2
+        self.MTF_c = 2
+        self.pad = floor((kernel.shape[0] - 1) / 2)
+
+        kernel = np.moveaxis(kernel, -1, 0)
+        kernel = np.expand_dims(kernel, axis=1)
+
+        kernel = torch.from_numpy(kernel).type(torch.float32)
+
+        # DepthWise-Conv2d definition
+        self.depthconv = nn.Conv2d(in_channels=self.nbands,
+                                   out_channels=self.nbands,
+                                   groups=self.nbands,
+                                   kernel_size=kernel.shape,
+                                   bias=False)
+
+        self.depthconv.weight.data = kernel
+        self.depthconv.weight.requires_grad = False
+
+        self.loss = nn.L1Loss(reduction='sum')
+
+        # Mask definition
+        if mask is not None:
+            self.mask = mask
+        else:
+            self.mask = torch.ones((1, self.nbands, pan_shape[-2] - (self.net_scope + self.pad) * 2,
+                                    pan_shape[-1] - (self.net_scope + self.pad) * 2), device=self.device)
+
+    def forward(self, outputs, labels):
+
+        x = self.depthconv(outputs)
+
+        labels = labels[:, :, self.pad:-self.pad, self.pad:-self.pad]
+        y = torch.zeros(x.shape, device=self.device)
+        W_ = torch.zeros(x.shape, device=self.device)
+
+        for b in range(self.nbands):
+            y[:, b, self.MTF_r::self.ratio, self.MTF_c::self.ratio] = labels[:, b, 2::self.ratio, 2::self.ratio]
+            W_[:, b, self.MTF_r::self.ratio, self.MTF_c::self.ratio] = self.mask[:, b, 2::self.ratio, 2::self.ratio]
+
+        W_ = W_ / torch.sum(W_)
+
+        x = x * W_
+        y = y * W_
+        L = self.loss(x, y)
 
         return L
 
 
 class StructuralLoss(nn.Module):
 
-    def __init__(self, sigma, beta, xcorr_th, gains):
+    def __init__(self, sigma, device):
         # Class initialization
         super(StructuralLoss, self).__init__()
 
         # Parameters definition:
 
-        self.scale = ceil(sigma/2)
-        self.beta = beta
-        self.xcorr_th = xcorr_th
-        self.gains = gains
+        self.scale = ceil(sigma / 2)
+        self.device = device
 
+    def forward(self, outputs, labels, xcorr_thr):
+        X_corr = torch.clamp(ccorr(outputs, labels, self.scale, self.device), min=-1)
+        X = 1.0 - X_corr
 
-    def forward(self, outputs, labels):
+        with torch.no_grad():
+            Lxcorr_no_weights = torch.mean(X)
 
-        X = -torch.ones(outputs.shape)
+        worst = X.gt(xcorr_thr)
+        Y = X * worst
+        Lxcorr = torch.mean(Y)
 
-        X = torch.max(X, xcorr(outputs, labels, self.scale))
-        X = torch.ones(X.shape) - X
-
-        #Lxcorr_no_weights = torch.mean(X, dim=(-1, -2))
-        worst = X.gt(self.xcorr_th)
-
-
-        X = X*(~worst)*self.gains[0] + X*(worst)*self.gains[1]
-        Lxcorr = torch.mean(X)
-
-
-        return self.beta * Lxcorr
-
-
-
-if __name__ == '__main__':
-
-    """
-    net = PNN(9, 9)
-    print(net)
-
-    inp = torch.ones((1, 9, 256, 256))
-    output = torch.zeros((1, 8, 240, 240))
-
-    out = net(inp)
-    """
-
-    import scipy.io as io
-    from interp23tap import interp23tap
-
-    temp_path = '/home/matteo/Scrivania/PNN/Zoom_PNN_advanced_v0/Datasets-ZPNN/WV3_Adelaide_crops/Adelaide_1.mat'
-    temp = io.loadmat(temp_path)
-    I_PAN = temp['I_PAN'].astype('float32')
-    I_MS = temp['I_MS_LR'].astype('float32')
-    ratio = int(temp['ratio'][0][0])
-    sensor = temp['sensor']
-    I_MS_FR = interp23tap(I_MS, 4)
-
-    loss = SpectralLoss(ratio, sensor, I_PAN, I_MS)
-    out = I_MS_FR[8:-8,8:-8,:]
-    out = np.moveaxis(out, -1, 0)
-    out = np.expand_dims(out, axis=0)
-    out = torch.from_numpy(out).type(torch.float32)
-
-    #ref = I_MS_FR[28:-28, 28:-28, :]
-    ref = I_MS_FR[8:-8, 8:-8, :]
-    ref = np.moveaxis(ref, -1, 0)
-    ref = np.expand_dims(ref, axis=0)
-    ref = torch.from_numpy(ref).float()
-
-    x = loss(out, ref)
-
-    sloss = StructuralLoss(ratio, 2e-4, 0.06, [1, 12])
-
-    y = sloss(out, out[:,0,:,:])
+        return Lxcorr, Lxcorr_no_weights.item()

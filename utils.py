@@ -1,73 +1,81 @@
+import math
 import numpy as np
 import torch
-import math
-"""
-def fspecial_gauss(size, sigma):
-    #"Function to mimic the 'fspecial' gaussian MATLAB function
-    "
-    x, y = np.mgrid[-size/2 + 1:size/2 + 1, -size/2 + 1:size/2 + 1]
-    g = (np.exp(-(( x**2 + y** 2) / (2.0 * sigma ** 2)))).astype(np.float64)
-    return g / g.sum()
-"""
-
-def fspecial_gauss(size, sigma):
-    # Function to mimic the 'fspecial' gaussian MATLAB function
-
-    m,n = [(ss-1.)/2. for ss in size]
-    y,x = np.ogrid[-m:m+1,-n:n+1]
-    h = np.exp( -(x*x + y*y) / (2.*sigma*sigma) )
-    h[ h < np.finfo(h.dtype).eps*h.max() ] = 0
-    sumh = h.sum()
-    if sumh != 0:
-        h /= sumh
-    #h = np.round(h, 4)
-    return h
-
-def fir_filter_wind(Hd, w):
-    """
-    compute fir filter with window method
-    Hd:     desired freqeuncy response (2D)
-    w:      window (2D)
-    """
-
-    hd = np.rot90(np.fft.fftshift(np.rot90(Hd, 2)), 2)
-    h = np.fft.fftshift(np.fft.ifft2(hd))
-    h = np.rot90(h, 2)
-    h = h * w
-    h = np.clip(h, a_min=0, a_max=np.max(h))
-    h = h / np.sum(h)
-
-    return h
+from cross_correlation import xcorr_torch
+from spectral_tools import gen_mtf
+import torch.nn as nn
+from math import floor
 
 
-def NyquistFilterGenerator(Gnyq, ratio, N):
-
-    assert isinstance(Gnyq, (np.ndarray, list)), 'Error: GNyq must be a list or a ndarray'
-
-    if isinstance(Gnyq, list):
-        Gnyq = np.asarray(Gnyq)
-
-    nbands = Gnyq.shape[0]
-
-
-    kernel = np.zeros((N, N, nbands))  # generic kerenel (for normalization purpose)
-
-    fcut = 1 / np.double(ratio)
-
-    for j in range(nbands):
-        alpha = np.sqrt(((N - 1) * (fcut / 2)) ** 2 / (-2 * np.log(Gnyq[j])))
-        H = fspecial_gauss((N,N), alpha)
-        Hd = H / np.max(H)
-        h = np.kaiser(N, 0.5)
-
-        kernel[:, :, j] = np.real(fir_filter_wind(Hd, h))
-    #kernel = np.round(kernel, 4)
-    return kernel
-
-
-## To eval
 def net_scope(kernel_size):
+    """
+        Compute the network scope.
+
+        Parameters
+        ----------
+        kernel_size : list
+            A list containing the kernel size of each layer of the network.
+
+        Return
+        ------
+        scope : int
+            The scope of the network
+
+        """
+
     scope = 0
     for i in range(len(kernel_size)):
-        scope += math.floor(kernel_size[i]/2)
+        scope += math.floor(kernel_size[i] / 2)
     return scope
+
+
+def local_corr_mask(img_in, ratio, sensor, device, kernel=8):
+    """
+        Compute the threshold mask for the structural loss.
+
+        Parameters
+        ----------
+        img_in : Torch Tensor
+            The test image, already normalized and with the MS part upsampled with ideal interpolator.
+        ratio : int
+            The resolution scale which elapses between MS and PAN.
+        sensor : str
+            The name of the satellites which has provided the images.
+        device : Torch device
+            The device on which perform the operation.
+        kernel : int
+            The semi-width for local cross-correlation computation.
+            (See the cross-correlation function for more details)
+
+        Return
+        ------
+        scope : int
+            The scope of the network
+
+        """
+
+    I_PAN = torch.unsqueeze(img_in[:, -1, :, :], dim=1)
+    I_MS = img_in[:, :-1, :, :]
+
+    MTF_kern = gen_mtf(ratio, sensor)[:, :, 0]
+    MTF_kern = np.expand_dims(MTF_kern, axis=(0, 1))
+    MTF_kern = torch.from_numpy(MTF_kern).type(torch.float32)
+    pad = floor((MTF_kern.shape[-1] - 1) / 2)
+
+    padding = nn.ReflectionPad2d(pad)
+
+    depthconv = nn.Conv2d(in_channels=1,
+                          out_channels=1,
+                          groups=1,
+                          kernel_size=MTF_kern.shape,
+                          bias=False)
+
+    depthconv.weight.data = MTF_kern
+    depthconv.weight.requires_grad = False
+
+    I_PAN = padding(I_PAN)
+    I_PAN = depthconv(I_PAN)
+    mask = xcorr_torch(I_PAN, I_MS, kernel, device)
+    mask = 1 - mask
+
+    return mask
