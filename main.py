@@ -14,6 +14,7 @@ import utils
 from input_prepocessing import input_preparation, resize_images
 from sensor import Sensor
 from spectral_tools import generate_mtf_variables
+from show_results import view
 
 
 def main_zpnn(args):
@@ -21,14 +22,21 @@ def main_zpnn(args):
 
     test_path = args.input
     sensor = args.sensor
+    method = args.method
     out_dir = args.out_dir
     epochs = args.epochs
+
+    if epochs == 1 and method == 'Z-PNN':
+        epochs = 100
+    elif epochs == 1 and method == 'A-PNN-FT-Z':
+        epochs = 2000
 
     gpu_number = str(args.gpu_number)
     use_cpu = args.use_cpu
     reduce_res_flag = args.RR
     coregistration_flag = args.coregistration
     save_losses_trend_flag = args.save_loss_trend
+    view_results_flag = args.view_results
 
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu_number
 
@@ -72,7 +80,7 @@ def main_zpnn(args):
     threshold = threshold[:, :, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
 
     # Loading of pre-trained weights
-    weight_path = 'weights/' + s.sensor + '_Z-PNN_model.tar'
+    weight_path = 'weights/' + s.sensor + '_' + method + '_model.tar'
     net.load_state_dict(torch.load(weight_path))
 
     # Losses definition
@@ -175,7 +183,6 @@ def main_zpnn(args):
     save_path = out_dir + test_path.split(os.sep)[-1].split('.')[0] + '_Z-PNN.mat'
     io.savemat(save_path, {'I_MS': out})
 
-    torch.cuda.empty_cache()
     if save_losses_trend_flag:
         io.savemat(
             out_dir + test_path.split(os.sep)[-1].split('.')[0] + '_losses_trend.mat',
@@ -186,6 +193,11 @@ def main_zpnn(args):
             }
         )
 
+    if view_results_flag:
+        view(I_MS, I_PAN, out, s.ratio, method)
+
+
+    torch.cuda.empty_cache()
     gc.collect()
     shutil.rmtree(temp_path, ignore_errors=True)
 
@@ -217,11 +229,14 @@ Image Processing Research Group of University Federico II of Naples
                                help='The sensor that has acquired the test image. Available sensors are '
                                     'WorldView-3 (WV3), WorldView-2 (WV2), GeoEye1 (GE1)')
 
+    requiredNamed.add_argument('-m', '--method', type=str, required=True, choices=["A-PNN-FT-Z", "Z-PNN"],
+                               default="Z-PNN", help='The algorithm with which perform Pansharpening.')
+
     default_out_path = 'Outputs/'
     optional.add_argument("-o", "--out_dir", type=str, default=default_out_path,
                           help='The directory in which save the outcome.')
-    optional.add_argument("--epochs", type=int, default=200, help='Number of the epochs with which perform the '
-                                                                  'fine-tuning of the algorithm.')
+    optional.add_argument("--epochs", type=int, default=1, help='Number of the epochs with which perform the '
+                                                                'fine-tuning of the algorithm.')
     optional.add_argument('-n_gpu', "--gpu_number", type=int, default=0, help='Number of the GPU on which perform the '
                                                                               'algorithm.')
     optional.add_argument("--use_cpu", action="store_true",
@@ -233,6 +248,7 @@ Image Processing Research Group of University Federico II of Naples
     optional.add_argument("--coregistration", action="store_true", help="Enable the coregistration feature.")
     optional.add_argument("--save_loss_trend", action="store_true", help="Option to save the trend of losses "
                                                                          "(For Debugging Purpose).")
+    optional.add_argument("--view_results", action="store_true", help="Enable the visualization of the outcomes.")
 
     parser._action_groups.append(optional)
     arguments = parser.parse_args()
