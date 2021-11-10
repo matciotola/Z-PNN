@@ -3,7 +3,7 @@ from utils import net_scope
 
 class Sensor:
     """
-        Sensor class definition. It contains all the usefull data for the proper management of the algorithm.
+        Sensor class definition. It contains all the useful data for the proper management of the algorithm.
 
         Parameters
         ----------
