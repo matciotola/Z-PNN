@@ -4,7 +4,7 @@ from skimage.transform import resize
 from interpolator_tools import interp23tap
 
 
-def view(starting_img_ms, img_pan, algorithm_outcome, ratio):
+def view(starting_img_ms, img_pan, algorithm_outcome, ratio, method):
 
     q_min = 0.02
     q_max = 0.98
@@ -46,11 +46,11 @@ def view(starting_img_ms, img_pan, algorithm_outcome, ratio):
 
     ax3 = plt.subplot(2, 4, 3, sharex=ax1, sharey=ax1)
     plt.imshow(T[:, :, RGB])
-    ax3.set_title('ZPNN (RGB)')
+    ax3.set_title(method + ' (RGB)')
 
     ax7 = plt.subplot(2, 4, 7, sharex=ax1, sharey=ax1)
     plt.imshow(T[:, :, RYB])
-    ax7.set_title('ZPNN (RYB)')
+    ax7.set_title(method + ' (RYB)')
 
     T = 0.5 + DP / (2 * Q_d)
     T = np.clip(T, 0, 1)
@@ -62,5 +62,5 @@ def view(starting_img_ms, img_pan, algorithm_outcome, ratio):
     ax8 = plt.subplot(2, 4, 8, sharex=ax1, sharey=ax1)
     plt.imshow(T[:, :, RYB])
     ax8.set_title('Detail (RYB)')
-
+    plt.show()
     return
