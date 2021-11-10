@@ -13,7 +13,7 @@ def net_scope(kernel_size):
 
         Parameters
         ----------
-        kernel_size : list
+        kernel_size : List[int]
             A list containing the kernel size of each layer of the network.
 
         Return
@@ -49,8 +49,8 @@ def local_corr_mask(img_in, ratio, sensor, device, kernel=8):
 
         Return
         ------
-        scope : int
-            The scope of the network
+        mask : PyTorch Tensor
+            Local correlation field stack, composed by each MS and PAN. Dimensions: Batch, B, H, W.
 
         """
 
@@ -76,6 +76,6 @@ def local_corr_mask(img_in, ratio, sensor, device, kernel=8):
     I_PAN = padding(I_PAN)
     I_PAN = depthconv(I_PAN)
     mask = xcorr_torch(I_PAN, I_MS, kernel, device)
-    mask = 1 - mask
+    mask = 1.0 - mask
 
     return mask
