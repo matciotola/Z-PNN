@@ -1,4 +1,6 @@
 # Z-PNN: Zoom Pansharpening Neural Network
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmatciotola%2FZ-PNN.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmatciotola%2FZ-PNN?ref=badge_shield)
+
 [Pansharpening by convolutional neural networks in the full resolution framework](https://www.tbd.com/) is 
 a deep learning method for Pansharpening based on unsupervised and full-resolution framework training.
 
@@ -18,6 +20,9 @@ This software should be used, reproduced and modified only for informational and
 By downloading and/or using any of these files, you implicitly agree to all the
 terms of the license, as specified in the document LICENSE.txt
 (included in this package) 
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmatciotola%2FZ-PNN.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmatciotola%2FZ-PNN?ref=badge_large)
 
 ## Prerequisites
 All the functions and scripts were tested on Python 3.9, PyTorch 1.8.1 and 1.10.0, Cuda 10.1 and 11.3.
