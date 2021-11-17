@@ -1,29 +1,8 @@
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 from math import floor, ceil
 import numpy as np
 from cross_correlation import xcorr_torch as ccorr
-
-
-class PNN(nn.Module):
-    def __init__(self, in_channels, kernels, scope):
-        super(PNN, self).__init__()
-
-        # Network variables
-        self.scope = scope
-
-        # Network structure
-        self.conv1 = nn.Conv2d(in_channels, 48, kernels[0])
-        self.conv2 = nn.Conv2d(48, 32, kernels[1])
-        self.conv3 = nn.Conv2d(32, in_channels - 1, kernels[2])
-
-    def forward(self, inp):
-        x = F.relu(self.conv1(inp))
-        x = F.relu(self.conv2(x))
-        x = self.conv3(x)
-        x = x + inp[:, :-1, self.scope:-self.scope, self.scope:-self.scope]
-        return x
 
 
 class SpectralLoss(nn.Module):
