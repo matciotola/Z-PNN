@@ -27,7 +27,7 @@ def view(starting_img_ms, img_pan, algorithm_outcome, ratio, method):
         RYB = (2, 3, 0)
     plt.figure()
     ax1 = plt.subplot(2, 4, 1)
-    plt.imshow(img_pan - Q_PAN[0, :, :] / (Q_PAN[1, :, :] - Q_PAN[0, :, :]), cmap='gray')
+    plt.imshow((img_pan - Q_PAN[0, :, :]) / (Q_PAN[1, :, :] - Q_PAN[0, :, :]), cmap='gray')
     ax1.set_title('PAN')
 
     T = (I_MS_LR_4x - Q_MS[0, :, :]) / (Q_MS[1, :, :] - Q_MS[0, :, :])
