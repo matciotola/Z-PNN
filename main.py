@@ -9,7 +9,8 @@ import scipy.io as io
 import torch
 import torch.optim as optim
 
-import network
+import networks
+import losses
 import utils
 from input_prepocessing import input_preparation, resize_images
 from sensor import Sensor
