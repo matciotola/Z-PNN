@@ -27,9 +27,9 @@ def main_zpnn(args):
     out_dir = args.out_dir
     epochs = args.epochs
 
-    if epochs == 1 and method == 'Z-PNN':
+    if epochs == 1 and 'Z-' in method:
         epochs = 100
-    elif epochs == 1 and method == 'A-PNN-FT-Z':
+    elif epochs == 1 and 'FT-Z' in method:
         epochs = 2000
 
     gpu_number = str(args.gpu_number)
@@ -81,24 +81,25 @@ def main_zpnn(args):
     threshold = threshold[:, :, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
 
     # Loading of pre-trained weights
+
     weight_path = 'weights/' + s.sensor + '_' + method + '_model.tar'
     net.load_state_dict(torch.load(weight_path))
 
     # Losses definition
     if coregistration_flag:
-        LSpec = network.SpectralLoss(generate_mtf_variables(s.ratio, sensor, I_PAN, I_MS),
-                                     s.net_scope,
-                                     I_PAN.shape,
-                                     s.ratio,
-                                     device)
+        LSpec = losses.SpectralLoss(generate_mtf_variables(s.ratio, sensor, I_PAN, I_MS),
+                                    s.net_scope,
+                                    I_PAN.shape,
+                                    s.ratio,
+                                    device)
     else:
-        LSpec = network.SpectralLossNocorr(generate_mtf_variables(s.ratio, sensor, I_PAN, I_MS),
-                                           s.net_scope,
-                                           I_PAN.shape,
-                                           s.ratio,
-                                           device)
+        LSpec = losses.SpectralLossNocorr(generate_mtf_variables(s.ratio, sensor, I_PAN, I_MS),
+                                          s.net_scope,
+                                          I_PAN.shape,
+                                          s.ratio,
+                                          device)
 
-    LStruct = network.StructuralLoss(s.ratio, device)
+    LStruct = losses.StructuralLoss(s.ratio, device)
 
     # Fitting strategy definition
     net = net.to(device)
@@ -181,7 +182,7 @@ def main_zpnn(args):
     out = np.clip(out, 0, out.max())
 
     out = out.astype(np.uint16)
-    save_path = out_dir + test_path.split(os.sep)[-1].split('.')[0] + '_Z-PNN.mat'
+    save_path = out_dir + test_path.split(os.sep)[-1].split('.')[0] + '_' + method + '.mat'
     io.savemat(save_path, {'I_MS': out})
 
     if save_losses_trend_flag:
