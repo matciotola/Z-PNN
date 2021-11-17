@@ -55,7 +55,13 @@ def main_zpnn(args):
 
     # class "Sensor" definition and PNN network definition
     s = Sensor(sensor)
-    net = network.PNN(s.nbands + 1, s.kernels, s.net_scope)
+
+    if 'DRPNN' in method:
+        net = networks.DRPNN(s.nbands + 1)
+    elif 'PanNet' in method:
+        net = networks.PanNet(s.nbands, s.ratio)
+    else:
+        net = networks.PNN(s.nbands + 1, s.kernels, s.net_scope)
 
     # Wald's Protocol
     if reduce_res_flag:
@@ -76,9 +82,15 @@ def main_zpnn(args):
     threshold = utils.local_corr_mask(I_in, s.ratio, s.sensor, device, semi_width)
     threshold = threshold.float()
 
-    spec_ref = I_in[:, :-1, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
-    struct_ref = torch.unsqueeze(I_in[:, -1, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope], dim=0)
-    threshold = threshold[:, :, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
+    if 'PNN' in method:
+        spec_ref = I_in[:, :-1, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
+        struct_ref = torch.unsqueeze(I_in[:, -1, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope], dim=1)
+        threshold = threshold[:, :, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
+    else:
+        spec_ref = I_in[:, :-1, :, :]
+        struct_ref = torch.unsqueeze(I_in[:, -1, :, :], dim=1)
+        s.net_scope = 0
+        I_inp = I_in
 
     # Loading of pre-trained weights
 
@@ -201,7 +213,6 @@ def main_zpnn(args):
     if view_results_flag:
         view(I_MS, I_PAN, out, s.ratio, method)
 
-
     torch.cuda.empty_cache()
     gc.collect()
     shutil.rmtree(temp_path, ignore_errors=True)
@@ -234,7 +245,9 @@ Image Processing Research Group of University Federico II of Naples
                                help='The sensor that has acquired the test image. Available sensors are '
                                     'WorldView-3 (WV3), WorldView-2 (WV2), GeoEye1 (GE1)')
 
-    requiredNamed.add_argument('-m', '--method', type=str, required=True, choices=["A-PNN-FT-Z", "Z-PNN"],
+    requiredNamed.add_argument('-m', '--method', type=str, required=True, choices=["A-PNN-FT-Z", "Z-PNN",
+                                                                                   "PanNet-FT-Z", "Z-PanNet",
+                                                                                   "Z-DRPNN"],
                                default="Z-PNN", help='The algorithm with which perform Pansharpening.')
 
     default_out_path = 'Outputs/'
