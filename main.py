@@ -250,7 +250,7 @@ Image Processing Research Group of University Federico II of Naples
     optional.add_argument("--RR", action="store_true", help='For evaluation only. The algorithm '
                                                             'will be performed at reduced '
                                                             'resolution.')
-    optional.add_argument("--coregistration", action="store_true", help="Enable the coregistration feature.")
+    optional.add_argument("--coregistration", action="store_true", help="Enable the co-registration feature.")
     optional.add_argument("--save_loss_trend", action="store_true", help="Option to save the trend of losses "
                                                                          "(For Debugging Purpose).")
     optional.add_argument("--view_results", action="store_true", help="Enable the visualization of the outcomes.")
