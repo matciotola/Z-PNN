@@ -83,7 +83,10 @@ def main_zpnn(args):
     # Loading of pre-trained weights
 
     weight_path = 'weights/' + s.sensor + '_' + method + '_model.tar'
-    net.load_state_dict(torch.load(weight_path))
+    if os.path.exists(weight_path):
+        net.load_state_dict(torch.load(weight_path))
+    else:
+        print('Weights are not available for this method. Training from scratch will be performed.')
 
     # Losses definition
     if coregistration_flag:
