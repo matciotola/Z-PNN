@@ -157,7 +157,7 @@ def main_zpnn(args):
     temp_path = 'temp/'
     if not os.path.exists(temp_path):
         os.mkdir(temp_path)
-    path_min_loss = temp_path + 'weights_' + test_path.split(os.sep)[-1].split('.')[0] + '.tar'
+    path_min_loss = temp_path + 'weights_' + test_path.split(os.sep)[-1].split('.')[0] + '_' + method + '.tar'
 
     # Training
     history_loss = np.zeros(epochs)
