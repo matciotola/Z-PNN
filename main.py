@@ -38,6 +38,7 @@ def main_zpnn(args):
     coregistration_flag = args.coregistration
     save_losses_trend_flag = args.save_loss_trend
     view_results_flag = args.view_results
+    save_weights_flag = args.save_weights
 
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu_number
 
@@ -215,7 +216,8 @@ def main_zpnn(args):
 
     torch.cuda.empty_cache()
     gc.collect()
-    # shutil.rmtree(temp_path, ignore_errors=True)
+    if save_weights_flag:
+        shutil.rmtree(temp_path, ignore_errors=True)
 
 
 if __name__ == '__main__':
@@ -267,6 +269,7 @@ Image Processing Research Group of University Federico II of Naples
     optional.add_argument("--save_loss_trend", action="store_true", help="Option to save the trend of losses "
                                                                          "(For Debugging Purpose).")
     optional.add_argument("--view_results", action="store_true", help="Enable the visualization of the outcomes.")
+    optional.add_argument("--save-weights", action="store_true", help="Save the training weights.")
 
     parser._action_groups.append(optional)
     arguments = parser.parse_args()
