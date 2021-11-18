@@ -82,7 +82,7 @@ def main_zpnn(args):
     threshold = utils.local_corr_mask(I_in, s.ratio, s.sensor, device, semi_width)
     threshold = threshold.float()
 
-    if 'PNN' in method:
+    if (method == 'Z-PNN') or (method == 'A-PNN-FT-Z'):
         spec_ref = I_in[:, :-1, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
         struct_ref = torch.unsqueeze(I_in[:, -1, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope], dim=1)
         threshold = threshold[:, :, s.net_scope:-s.net_scope, s.net_scope:-s.net_scope]
