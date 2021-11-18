@@ -64,6 +64,11 @@ def main_zpnn(args):
     else:
         net = networks.PNN(s.nbands + 1, s.kernels, s.net_scope)
 
+    if args.learning_rate != -1.0:
+        s.learning_rate = args.learning_rate
+    if args.beta != -1.0:
+        s.beta = args.beta
+
     # Wald's Protocol
     if reduce_res_flag:
         I_MS, I_PAN = resize_images(I_MS, I_PAN, s.ratio, s.sensor)
@@ -270,6 +275,10 @@ Image Processing Research Group of University Federico II of Naples
                                                                          "(For Debugging Purpose).")
     optional.add_argument("--view_results", action="store_true", help="Enable the visualization of the outcomes.")
     optional.add_argument("--save-weights", action="store_true", help="Save the training weights.")
+    optional.add_argument("-lr", "--learning_rate", type=float, default=-1.0,
+                          help='Learning rate with which perform the training.')
+    optional.add_argument("-b", "--beta", type=float, default=-1.0,
+                          help='Beta value with which to weight the structural loss during the training.')
 
     parser._action_groups.append(optional)
     arguments = parser.parse_args()
