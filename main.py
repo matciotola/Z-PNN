@@ -215,7 +215,7 @@ def main_zpnn(args):
 
     torch.cuda.empty_cache()
     gc.collect()
-    shutil.rmtree(temp_path, ignore_errors=True)
+    # shutil.rmtree(temp_path, ignore_errors=True)
 
 
 if __name__ == '__main__':
