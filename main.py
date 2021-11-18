@@ -124,7 +124,23 @@ def main_zpnn(args):
 
     # Fitting strategy definition
     net = net.to(device)
-    optimizer = optim.Adam(net.parameters(), lr=s.learning_rate)
+    if 'DRPNN' in method:
+        params = []
+        base_params = []
+        for i, k in net.named_parameters():
+            if i == 'Conv_11.weight':
+                params.append(k)
+            elif i == 'Conv_11.bias':
+                params.append(k)
+            else:
+                base_params.append(k)
+
+        optimizer = optim.Adam([
+            {"params": base_params}, {"params": params, "lr": s.learning_rate - 1e-1}],
+            lr=s.learning_rate)
+    else:
+        optimizer = optim.Adam(net.parameters(), lr=s.learning_rate)
+
     net.train()
 
     # Moving everything on the device
