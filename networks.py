@@ -78,7 +78,7 @@ class DRPNN(nn.Module):
         self.Conv_7 = nn.Conv2d(64, 64, 7, padding=(3, 3))
         self.Conv_8 = nn.Conv2d(64, 64, 7, padding=(3, 3))
         self.Conv_9 = nn.Conv2d(64, 64, 7, padding=(3, 3))
-        self.Conv_10 = nn.Conv2d(64, 9, 7, padding=(3, 3))
+        self.Conv_10 = nn.Conv2d(64, in_channels, 7, padding=(3, 3))
         self.Conv_11 = nn.Conv2d(in_channels, in_channels - 1, 3, padding=(1, 1))
 
     def forward(self, x):
