@@ -232,7 +232,7 @@ def main_zpnn(args):
             }
         )
 
-    if view_results_flag:
+    if not view_results_flag:
         view(I_MS, I_PAN, out, s.ratio, method)
 
     torch.cuda.empty_cache()
