@@ -136,7 +136,7 @@ def main_zpnn(args):
                 base_params.append(k)
 
         optimizer = optim.Adam([
-            {"params": base_params}, {"params": params, "lr": s.learning_rate - 1e-1}],
+            {"params": base_params}, {"params": params, "lr": s.learning_rate * 1e-1}],
             lr=s.learning_rate)
     else:
         optimizer = optim.Adam(net.parameters(), lr=s.learning_rate)
