@@ -14,5 +14,5 @@ dependencies:
   - numpy
   - pytorch
   - tqdm
-  - imageio
+  - gdal
 prefix: /home/matteo/anaconda3/envs/z_pnn_env
