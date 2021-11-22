@@ -19,8 +19,7 @@ from show_results import view
 
 
 def main_zpnn(args):
-    # Parameter definitions
-
+    # Parameters definitions
     test_path = args.input
     sensor = args.sensor
     method = args.method
@@ -270,7 +269,7 @@ Image Processing Research Group of University Federico II of Naples
 
     requiredNamed.add_argument('-m', '--method', type=str, required=True, choices=["A-PNN-FT-Z", "Z-PNN",
                                                                                    "PanNet-FT-Z", "Z-PanNet",
-                                                                                   "Z-DRPNN"],
+                                                                                   "DRPNN-FT-Z", "Z-DRPNN"],
                                default="Z-PNN", help='The algorithm with which perform Pansharpening.')
 
     default_out_path = 'Outputs/'
