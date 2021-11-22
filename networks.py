@@ -28,7 +28,7 @@ class PanNet(nn.Module):
         super(PanNet, self).__init__()
         self.ratio = ratio
         self.Conv2d_transpose = nn.ConvTranspose2d(nbands, nbands, 8, 4, padding=(2, 2), bias=False)
-        self.Conv = nn.Conv2d(9, 32, 3, padding=(1, 1))
+        self.Conv = nn.Conv2d(nbands + 1, 32, 3, padding=(1, 1))
         self.Conv_1 = nn.Conv2d(32, 32, 3, padding=(1, 1))
         self.Conv_2 = nn.Conv2d(32, 32, 3, padding=(1, 1))
         self.Conv_3 = nn.Conv2d(32, 32, 3, padding=(1, 1))
