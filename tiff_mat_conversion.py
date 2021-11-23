@@ -91,7 +91,7 @@ def mat_to_tiff_conversion(mat_path, pan_path, save_path):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='TifMatConversion',
+    parser = argparse.ArgumentParser(prog='TiffMatConversion',
                                      description='Script to convert GeoTiff file in *.mat for Z-PNN usage and the other way around.',
                                      )
 

@@ -231,7 +231,7 @@ def main_zpnn(args):
             }
         )
 
-    if not view_results_flag:
+    if view_results_flag:
         view(I_MS, I_PAN, out, s.ratio, method)
 
     torch.cuda.empty_cache()
@@ -289,7 +289,7 @@ Image Processing Research Group of University Federico II of Naples
     optional.add_argument("--save_loss_trend", action="store_true", help="Option to save the trend of losses "
                                                                          "(For Debugging Purpose).")
     optional.add_argument("--view_results", action="store_true", help="Enable the visualization of the outcomes.")
-    optional.add_argument("--save-weights", action="store_true", help="Save the training weights.")
+    optional.add_argument("--save_weights", action="store_true", help="Save the training weights.")
     optional.add_argument("-lr", "--learning_rate", type=float, default=-1.0,
                           help='Learning rate with which perform the training.')
     optional.add_argument("-b", "--beta", type=float, default=-1.0,
