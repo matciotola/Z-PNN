@@ -236,7 +236,7 @@ def main_zpnn(args):
 
     torch.cuda.empty_cache()
     gc.collect()
-    if save_weights_flag:
+    if not save_weights_flag:
         shutil.rmtree(temp_path, ignore_errors=True)
 
 
