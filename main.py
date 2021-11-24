@@ -38,6 +38,7 @@ def main_zpnn(args):
     save_losses_trend_flag = args.save_loss_trend
     view_results_flag = args.view_results
     save_weights_flag = args.save_weights
+    from_scratch_flag = args.from_scratch
 
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu_number
 
@@ -100,10 +101,10 @@ def main_zpnn(args):
     # Loading of pre-trained weights
 
     weight_path = 'weights/' + s.sensor + '_' + method + '_model.tar'
-    if os.path.exists(weight_path):
+    if os.path.exists(weight_path) and not from_scratch_flag:
         net.load_state_dict(torch.load(weight_path))
     else:
-        print('Weights are not available for this method. Training from scratch will be performed.')
+        print('Training from scratch will be performed.')
 
     # Losses definition
     if coregistration_flag:
@@ -139,6 +140,11 @@ def main_zpnn(args):
             lr=s.learning_rate)
     else:
         optimizer = optim.Adam(net.parameters(), lr=s.learning_rate)
+
+    if from_scratch_flag:
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=100,
+                                             threshold_mode='rel', cooldown=50, min_lr=1e-7, eps=1e-08, verbose=True)
+
 
     net.train()
 
@@ -186,6 +192,8 @@ def main_zpnn(args):
             loss = loss_spec + s.beta * loss_struct
             loss.backward()
             optimizer.step()
+            if from_scratch_flag:
+                scheduler.step(loss)
 
             running_loss += loss.item()
             running_spec_loss += loss_spec.item()
@@ -294,6 +302,8 @@ Image Processing Research Group of University Federico II of Naples
                           help='Learning rate with which perform the training.')
     optional.add_argument("-b", "--beta", type=float, default=-1.0,
                           help='Beta value with which to weight the structural loss during the training.')
+    optional.add_argument("--from_scratch", action="store_true",
+                          help="Train the network from scratch. Enable ReduceLROnPlateau to allow high learning-rates")
 
     parser._action_groups.append(optional)
     arguments = parser.parse_args()
