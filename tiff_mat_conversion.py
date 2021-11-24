@@ -95,17 +95,26 @@ if __name__ == '__main__':
                                      description='Script to convert GeoTiff file in *.mat for Z-PNN usage and the other way around.',
                                      )
 
-    parser.add_argument('-m', '--mode', type=str, required=True, choices=["Tif2Mat", "Mat2Tif"],
+    parser.add_argument('-m', '--mode', type=str, required=True, choices=["Tiff2Mat", "Mat2Tiff"],
                         default="Tif2Mat", help='The algorithm with which perform Pansharpening.')
 
     parser.add_argument('-ms', '--ms_tiff_path', type=str, help='The path of GeoTiff Multi-Spectral file.')
     parser.add_argument('-pan', '--pan_tiff_path', type=str, help='The path of GeoTiff Panchromatic file.')
-    parser.add_argument('-m', '--mat_path', type=str, help='The path of *.mat file - '
+    parser.add_argument('-mat', '--mat_path', type=str, help='The path of *.mat file - '
                                                            'Path of Full-Resolution framework result.')
     parser.add_argument('-o', '--out_path', type=str, help='The path where save the output.')
     parser.add_argument('--initial_point', type=tuple, default=(0, 0),
                         help='Upper left point for image cropping. The point must be expressed in pixel coordinates, '
-                             'as (x,y), where (0,0) is precisely the point at the top left.')
+                             'as (x,y), where (0,0) is precisely the point at the top left and referred to Multi-Spectral image.')
     parser.add_argument('--final_point', type=tuple, default=(0, 0),
                         help='Bottom right point for image cropping. The point must be expressed in pixel coordinates, '
-                             'where (0,0) is precisely the point at the top left')
+                             'where (0,0) is precisely the point at the top left, and referred to the Multi-Spectral image')
+
+    arguments = parser.parse_args()
+
+    if arguments.mode == 'Tiff2Mat':
+        _ = tiff_to_mat_conversion(arguments.ms_tiff_path, arguments.pan_tiff_path, arguments.out_path, arguments.initial_point, arguments.final_point)
+    elif arguments.mode == 'Mat2Tiff':
+        mat_to_tiff_conversion(arguments.mat_path, arguments.pan_tiff_path,arguments.out_path)
+    else:
+        print('Unsupported choice.')
