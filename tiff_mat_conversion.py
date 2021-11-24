@@ -103,14 +103,17 @@ if __name__ == '__main__':
     parser.add_argument('-mat', '--mat_path', type=str, help='The path of *.mat file - '
                                                            'Path of Full-Resolution framework result.')
     parser.add_argument('-o', '--out_path', type=str, help='The path where save the output.')
-    parser.add_argument('--initial_point', type=tuple, default=(0, 0),
+    parser.add_argument('--initial_point', nargs="+", type=int, default=[0, 0],
                         help='Upper left point for image cropping. The point must be expressed in pixel coordinates, '
-                             'as (x,y), where (0,0) is precisely the point at the top left and referred to Multi-Spectral image.')
-    parser.add_argument('--final_point', type=tuple, default=(0, 0),
+                             'as x y, where 0 0 is precisely the point at the top left and referred to Multi-Spectral image.')
+    parser.add_argument('--final_point', nargs="+", type=int, default=[0, 0],
                         help='Bottom right point for image cropping. The point must be expressed in pixel coordinates, '
-                             'where (0,0) is precisely the point at the top left, and referred to the Multi-Spectral image')
+                             'as x y, where 0 0 is precisely the point at the top left and referred to the Multi-Spectral image')
 
     arguments = parser.parse_args()
+
+    initial_point = tuple(arguments.initial_point)
+    final_point = tuple(arguments.final_point)
 
     if arguments.mode == 'Tiff2Mat':
         _ = tiff_to_mat_conversion(arguments.ms_tiff_path, arguments.pan_tiff_path, arguments.out_path, arguments.initial_point, arguments.final_point)
