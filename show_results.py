@@ -4,10 +4,8 @@ from skimage.transform import resize
 from interpolator_tools import interp23tap
 
 
-def view(starting_img_ms, img_pan, algorithm_outcome, ratio, method):
+def view(starting_img_ms, img_pan, algorithm_outcome, ratio, method, q_min=0.02, q_max=0.98):
 
-    q_min = 0.02
-    q_max = 0.98
 
     Q_MS = np.quantile(starting_img_ms, (q_min, q_max), (0, 1), keepdims=True)
     Q_PAN = np.quantile(img_pan, (q_min, q_max), (0, 1), keepdims=True)
