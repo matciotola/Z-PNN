@@ -109,7 +109,7 @@ def resize_images(img_ms, img_pan, ratio, sensor=None, mtf=None, apply_mtf_to_pa
     elif ((sensor == 'Ikonos') or (sensor == 'IKONOS')) & (mtf is None):
         GNyq = np.asarray([0.26, 0.28, 0.29, 0.28])  # Bands Order: B,G,R,NIR
         GNyqPan = np.asarray([0.17])
-    elif (sensor == 'GeoEye1') & (mtf is None):
+    elif (sensor == 'GeoEye1' or sensor == 'GE1') & (mtf is None):
         GNyq = np.asarray([0.23, 0.23, 0.23, 0.23])  # Bands Order: B, G, R, NIR
         GNyqPan = np.asarray([0.16])
     elif (sensor == 'WV2') & (mtf is None):
