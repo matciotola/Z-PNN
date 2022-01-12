@@ -235,7 +235,7 @@ def main_zpnn(args):
             {
                 'overall_loss': history_loss,
                 'spectral_loss': history_loss_spec,
-                'strucutral_loss: ': history_loss_struct
+                'structural_loss: ': history_loss_struct
             }
         )
 
