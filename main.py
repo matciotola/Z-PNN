@@ -15,7 +15,7 @@ import utils
 from input_prepocessing import input_preparation, resize_images
 from sensor import Sensor
 from spectral_tools import generate_mtf_variables
-from show_results import view
+from show_results import show
 
 
 def main_zpnn(args):
@@ -36,7 +36,7 @@ def main_zpnn(args):
     reduce_res_flag = args.RR
     coregistration_flag = args.coregistration
     save_losses_trend_flag = args.save_loss_trend
-    view_results_flag = args.view_results
+    show_results_flag = args.show_results
     save_weights_flag = args.save_weights
     from_scratch_flag = args.from_scratch
 
@@ -239,8 +239,8 @@ def main_zpnn(args):
             }
         )
 
-    if view_results_flag:
-        view(I_MS, I_PAN, out, s.ratio, method)
+    if show_results_flag:
+        show(I_MS, I_PAN, out, s.ratio, method)
 
     torch.cuda.empty_cache()
     gc.collect()
@@ -296,7 +296,7 @@ Image Processing Research Group of University Federico II of Naples
     optional.add_argument("--coregistration", action="store_true", help="Enable the co-registration feature.")
     optional.add_argument("--save_loss_trend", action="store_true", help="Option to save the trend of losses "
                                                                          "(For Debugging Purpose).")
-    optional.add_argument("--view_results", action="store_true", help="Enable the visualization of the outcomes.")
+    optional.add_argument("--show_results", action="store_true", help="Enable the visualization of the outcomes.")
     optional.add_argument("--save_weights", action="store_true", help="Save the training weights.")
     optional.add_argument("-lr", "--learning_rate", type=float, default=-1.0,
                           help='Learning rate with which perform the training.')
