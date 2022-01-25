@@ -275,9 +275,9 @@ Image Processing Research Group of University Federico II of Naples
                                help='The sensor that has acquired the test image. Available sensors are '
                                     'WorldView-3 (WV3), WorldView-2 (WV2), GeoEye1 (GE1)')
 
-    requiredNamed.add_argument('-m', '--method', type=str, required=True, choices=["A-PNN-FT-Z", "Z-PNN",
-                                                                                   "PanNet-FT-Z", "Z-PanNet",
-                                                                                   "DRPNN-FT-Z", "Z-DRPNN"],
+    requiredNamed.add_argument('-m', '--method', type=str, required=True, choices=["A-PNN-TA-FR", "Z-PNN",
+                                                                                   "PanNet-TA-FR", "Z-PanNet",
+                                                                                   "DRPNN-TA-FR", "Z-DRPNN"],
                                default="Z-PNN", help='The algorithm with which perform Pansharpening.')
 
     default_out_path = 'Outputs/'
