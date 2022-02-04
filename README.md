@@ -24,7 +24,7 @@ All the functions and scripts were tested on Windows and Ubuntu O.S., with these
 
 - Python 3.9 
 - PyTorch 1.8.1 or 1.10.0
--  Cuda 10.1 and 11.3 (For GPU acceleration).
+-  Cuda 10.1 or 11.3 (For GPU acceleration).
 
 the operation is not guaranteed with other configurations.
 
