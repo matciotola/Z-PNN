@@ -5,7 +5,31 @@ from interpolator_tools import interp23tap
 
 
 def show(starting_img_ms, img_pan, algorithm_outcome, ratio, method, q_min=0.02, q_max=0.98):
+    """
+        Auxiliary function for results visualization.
 
+        Parameters
+        ----------
+        starting_img_ms : Numpy Array
+            The Multi-Spectral image. Dimensions: H, W, Bands
+        img_pan : Numpy Array
+            The PAN image. Dimensions: H, W
+        algorithm_outcome : NumPy Array
+            The Fused image. Dimensions: H, W, Bands
+        ratio : int
+            PAN-MS resolution ratio
+        method : str
+            The name of the pansharpening algorithm
+        q_min : float
+            Minimum quantile to compute, which must be between 0 and 1 inclusive.
+        q_max : float
+            Maximum quantile to compute, which must be between 0 and 1 inclusive.
+
+        Return
+        ------
+        None
+
+    """
 
     Q_MS = np.quantile(starting_img_ms, (q_min, q_max), (0, 1), keepdims=True)
     Q_PAN = np.quantile(img_pan, (q_min, q_max), (0, 1), keepdims=True)
