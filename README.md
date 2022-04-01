@@ -2,6 +2,21 @@
 [Pansharpening by convolutional neural networks in the full resolution framework](https://arxiv.org/abs/2111.08334) is 
 a deep learning method for Pansharpening based on unsupervised and full-resolution framework training.
 
+## Cite Z-PNN
+
+If you use Z-PNN in your research, please use the following BibTeX entry.
+
+```
+@misc{ciotola2022pansharpening,
+      title={Pansharpening by convolutional neural networks in the full resolution framework}, 
+      author={Matteo Ciotola and Sergio Vitale and Antonio Mazza and Giovanni Poggi and Giuseppe Scarpa},
+      year={2022},
+      eprint={2111.08334},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
+
 ## Team members
  - Matteo Ciotola (matteo.ciotola@unina.it);
  - Sergio Vitale  (sergio.vitale@uniparthenope.it);
@@ -24,7 +39,7 @@ All the functions and scripts were tested on Windows and Ubuntu O.S., with these
 
 - Python 3.9 
 - PyTorch 1.8.1 or 1.10.0
--  Cuda 10.1 and 11.3 (For GPU acceleration).
+-  Cuda 10.1 or 11.3 (For GPU acceleration).
 
 the operation is not guaranteed with other configurations.
 
