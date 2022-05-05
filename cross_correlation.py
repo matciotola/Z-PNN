@@ -8,8 +8,7 @@ from skimage.transform.integral import integral_image as integral
 
 def xcorr(img_1, img_2, half_width):
 
-    """
-        Cross-Correlation Field computation.
+    """ Cross-Correlation Field computation.
 
         Parameters
         ----------
@@ -26,7 +25,7 @@ def xcorr(img_1, img_2, half_width):
         L : Numpy array
             The cross-correlation map between img_1 and img_2
 
-        """
+    """
 
     w = ceil(half_width)
     ep = 1e-20
@@ -92,8 +91,7 @@ def xcorr(img_1, img_2, half_width):
 
 def xcorr_torch(img_1, img_2, half_width, device):
 
-    """
-        A PyTorch implementation of Cross-Correlation Field computation.
+    """ A PyTorch implementation of Cross-Correlation Field computation.
 
         Parameters
         ----------
@@ -112,7 +110,7 @@ def xcorr_torch(img_1, img_2, half_width, device):
         L : Torch Tensor
             The cross-correlation map between img_1 and img_2
 
-        """
+    """
 
     w = ceil(half_width)
     ep = 1e-20
