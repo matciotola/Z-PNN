@@ -26,7 +26,6 @@ def xcorr(img_1, img_2, half_width):
             The cross-correlation map between img_1 and img_2
 
         """
-
     w = ceil(half_width)
     ep = 1e-20
 
@@ -111,7 +110,6 @@ def xcorr_torch(img_1, img_2, half_width, device):
             The cross-correlation map between img_1 and img_2
 
         """
-
     w = ceil(half_width)
     ep = 1e-20
     img_1 = img_1.type(torch.DoubleTensor)
