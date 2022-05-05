@@ -1,11 +1,12 @@
-import numpy as np
-from skimage import transform
 import math
+
+import numpy as np
 import torch
+from skimage import transform
 from torch import nn
 
-from interpolator_tools import interp23tap
 import spectral_tools as ut
+from interpolator_tools import interp23tap
 
 
 def input_preparation(ms, pan, ratio, nbits, pad_size):
@@ -125,17 +126,13 @@ def resize_images(img_ms, img_pan, ratio, sensor=None, mtf=None, apply_mtf_to_pa
 
     N = 41
 
-    r, c, b = img_ms.shape
+    b = img_ms.shape[-1]
 
     img_ms = np.moveaxis(img_ms, -1, 0)
     img_ms = np.expand_dims(img_ms, axis=0)
 
     h = ut.nyquist_filter_generator(GNyq, ratio, N)
-    h = np.moveaxis(h, -1, 0)
-    h = np.expand_dims(h, axis=1)
-    h = h.astype('float32')
-
-    h = torch.from_numpy(h).type(torch.float32)
+    h = ut.mtf_kernel_to_torch(h)
 
     conv = nn.Conv2d(in_channels=b, out_channels=b, padding=math.ceil(N / 2),
                      kernel_size=h.shape, groups=b, bias=False, padding_mode='replicate')
@@ -155,11 +152,7 @@ def resize_images(img_ms, img_pan, ratio, sensor=None, mtf=None, apply_mtf_to_pa
         img_pan = np.expand_dims(img_pan, [0, 1])
 
         h = ut.nyquist_filter_generator(GNyqPan, ratio, N)
-        h = np.moveaxis(h, -1, 0)
-        h = np.expand_dims(h, axis=1)
-        h = h.astype('float32')
-
-        h = torch.from_numpy(h).type(torch.float32)
+        h = ut.mtf_kernel_to_torch(h)
 
         conv = nn.Conv2d(in_channels=1, out_channels=1, padding=math.ceil(N / 2),
                          kernel_size=h.shape, groups=1, bias=False, padding_mode='replicate')

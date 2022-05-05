@@ -21,7 +21,8 @@ class Sensor:
         elif (sensor == 'Ikonos') or (sensor == 'IKONOS'):
             self.kernels = [5, 5, 5]
 
-        if (sensor == 'QB') or (sensor == 'GeoEye1') or (sensor == 'GE1') or (sensor == 'Ikonos') or (sensor == 'IKONOS'):
+        if (sensor == 'QB') or (sensor == 'GeoEye1') or (sensor == 'GE1') or (sensor == 'Ikonos') or (
+                sensor == 'IKONOS'):
             self.nbands = 4
         elif (sensor == 'WV2') or (sensor == 'WV3'):
             self.nbands = 8

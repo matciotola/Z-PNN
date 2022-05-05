@@ -2,20 +2,20 @@ import argparse
 import gc
 import os
 import shutil
-from tqdm import tqdm
 
 import numpy as np
 import scipy.io as io
 import torch
 import torch.optim as optim
+from tqdm import tqdm
 
-import networks
 import losses
+import networks
 import utils
 from input_prepocessing import input_preparation, resize_images
 from sensor import Sensor
-from spectral_tools import generate_mtf_variables
 from show_results import show
+from spectral_tools import generate_mtf_variables
 
 
 def main_zpnn(args):
@@ -143,8 +143,8 @@ def main_zpnn(args):
 
     if from_scratch_flag:
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=100,
-                                             threshold_mode='rel', cooldown=50, min_lr=1e-7, eps=1e-08, verbose=True)
-
+                                                         threshold_mode='rel', cooldown=50, min_lr=1e-7, eps=1e-08,
+                                                         verbose=True)
 
     net.train()
 

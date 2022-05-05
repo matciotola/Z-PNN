@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.ndimage.filters as ft
+import torch
 
 from cross_correlation import xcorr
 
@@ -141,7 +142,6 @@ def gen_mtf(ratio, sensor, kernel_size=41):
 
 
 def generate_mtf_variables(ratio, sensor, img_pan, img_ms):
-
     """
         Compute the estimated MTF filter kernels for the supported satellites and calculate the spatial bias between
         each Multi-Spectral band and the Panchromatic (to implement the coregistration feature).
@@ -200,3 +200,26 @@ def generate_mtf_variables(ratio, sensor, img_pan, img_ms):
         c = np.squeeze(c).astype(np.uint8)
 
     return h, r, c
+
+
+def mtf_kernel_to_torch(h):
+    """
+        Compute the estimated MTF filter kernels for the supported satellites and calculate the spatial bias between
+        each Multi-Spectral band and the Panchromatic (to implement the coregistration feature).
+
+        Parameters
+        ----------
+        h : Numpy Array
+            The filter based on Modulation Transfer Function.
+
+        Return
+        ------
+        h : Tensor array
+            The filter based on Modulation Transfer Function reshaped to Conv2d kernel format.
+        """
+
+    h = np.moveaxis(h, -1, 0)
+    h = np.expand_dims(h, axis=1)
+    h = h.astype('float32')
+    h = torch.from_numpy(h).type('float32')
+    return h

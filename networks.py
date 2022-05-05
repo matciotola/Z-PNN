@@ -1,6 +1,6 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch
 
 
 class PNN(nn.Module):
@@ -40,7 +40,6 @@ class PanNet(nn.Module):
         self.Conv_9 = nn.Conv2d(32, nbands, 3, padding=(1, 1))
 
     def forward(self, inp):
-
         lms = inp[:, :-1, 2::self.ratio, 2::self.ratio]
         pan = torch.unsqueeze(inp[:, -1, :, :], dim=1)
 
