@@ -70,7 +70,7 @@ conda activate z_pnn_env
 - Test it 
 
 ```
-python main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration --view_results 
+python main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration --show_results 
 ```
 
 
