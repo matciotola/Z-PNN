@@ -46,7 +46,7 @@ def main_zpnn(args):
     semi_width = 8
 
     # Torch configuration
-    device = torch.device("cuda" if torch.cuda.is_available() and not use_cpu else "cpu")
+    device = torch.device("cuda" if (torch.cuda.is_available() and not use_cpu) else "cpu")
 
     # Load test images
     temp = io.loadmat(test_path)
