@@ -22,7 +22,8 @@ jobs:
     - name: Install dependencies
       run: |
         conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
-        conda install scikit-image scipy scikit-learn matplotlib numpy tqdm gdal -c conda-forge
+        conda install numpy tqdm gdal matplotlib -c conda-forge
+        conda install scikit-image scipy scikit-learn -c conda-forge
     - name: Test with pytest
       run: |
         conda install pytest
