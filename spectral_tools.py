@@ -220,6 +220,6 @@ def mtf_kernel_to_torch(h):
 
     h = np.moveaxis(h, -1, 0)
     h = np.expand_dims(h, axis=1)
-    h = h.astype('float32')
-    h = torch.from_numpy(h).type('float32')
+    h = h.astype(np.float32)
+    h = torch.from_numpy(h).type(torch.float32)
     return h
