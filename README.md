@@ -1,4 +1,9 @@
 # Pansharpening by convolutional neural networks in the full resolution framework
+
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2c50e61e07554cd1a63a0e97d61a54a3)](https://www.codacy.com/gh/matciotola/Z-PNN/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=matciotola/Z-PNN&amp;utm_campaign=Badge_Grade)
+[![build](https://github.com/matciotola/Z-PNN/actions/workflows/python-package-z-pnn.yml/badge.svg)](https://github.com/matciotola/Z-PNN/actions/workflows/python-package-z-pnn.yml)
+
+
 [Pansharpening by convolutional neural networks in the full resolution framework](https://ieeexplore.ieee.org/document/9745494) ([ArXiv](https://arxiv.org/abs/2111.08334)) is 
 a deep learning method for Pansharpening based on unsupervised and full-resolution framework training.
 
