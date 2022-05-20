@@ -1,5 +1,5 @@
-# Z-PNN: Zoom Pansharpening Neural Network
-[Pansharpening by convolutional neural networks in the full resolution framework](https://arxiv.org/abs/2111.08334) is 
+# Pansharpening by convolutional neural networks in the full resolution framework
+[Pansharpening by convolutional neural networks in the full resolution framework](https://ieeexplore.ieee.org/document/9745494) ([ArXiv](https://arxiv.org/abs/2111.08334)) is 
 a deep learning method for Pansharpening based on unsupervised and full-resolution framework training.
 
 ## Cite Z-PNN
@@ -7,13 +7,15 @@ a deep learning method for Pansharpening based on unsupervised and full-resoluti
 If you use Z-PNN in your research, please use the following BibTeX entry.
 
 ```
-@misc{ciotola2022pansharpening,
-      title={Pansharpening by convolutional neural networks in the full resolution framework}, 
-      author={Matteo Ciotola and Sergio Vitale and Antonio Mazza and Giovanni Poggi and Giuseppe Scarpa},
-      year={2022},
-      eprint={2111.08334},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+@article{Ciotola2022,  
+         author={Ciotola, Matteo and Vitale, Sergio and Mazza, Antonio and Poggi, Giovanni and Scarpa, Giuseppe},  
+         journal={IEEE Transactions on Geoscience and Remote Sensing},   
+         title={Pansharpening by convolutional neural networks in the full resolution framework},   
+         year={2022},  
+         volume={},  
+         number={},  
+         pages={1-1},  
+         doi={10.1109/TGRS.2022.3163887}
 }
 ```
 
@@ -68,7 +70,7 @@ conda activate z_pnn_env
 - Test it 
 
 ```
-python main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration --view_results 
+python main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration --show_results 
 ```
 
 

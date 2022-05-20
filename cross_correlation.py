@@ -1,8 +1,9 @@
 from math import ceil
+
 import numpy as np
-from skimage.transform.integral import integral_image as integral
 import torch
 import torch.nn.functional as F
+from skimage.transform.integral import integral_image as integral
 
 
 def xcorr(img_1, img_2, half_width):
@@ -24,8 +25,7 @@ def xcorr(img_1, img_2, half_width):
         L : Numpy array
             The cross-correlation map between img_1 and img_2
 
-        """
-
+    """
     w = ceil(half_width)
     ep = 1e-20
 
@@ -44,8 +44,12 @@ def xcorr(img_1, img_2, half_width):
     for i in range(img_2.shape[-1]):
         img_2_cum[:, :, i] = integral(img_2[:, :, i]).astype(np.float64)
 
-    img_1_mu = (img_1_cum[2*w:, 2*w:, :] - img_1_cum[:-2*w, 2*w:, :] - img_1_cum[2*w:, :-2*w, :] + img_1_cum[:-2*w, :-2*w, :]) / (4*w**2)
-    img_2_mu = (img_2_cum[2*w:, 2*w:, :] - img_2_cum[:-2*w, 2*w:, :] - img_2_cum[2*w:, :-2*w, :] + img_2_cum[:-2*w, :-2*w, :]) / (4*w**2)
+    img_1_mu = (img_1_cum[2 * w:, 2 * w:, :] - img_1_cum[:-2 * w, 2 * w:, :] - img_1_cum[2 * w:, :-2 * w,
+                                                                               :] + img_1_cum[:-2 * w, :-2 * w, :]) / (
+                       4 * w ** 2)
+    img_2_mu = (img_2_cum[2 * w:, 2 * w:, :] - img_2_cum[:-2 * w, 2 * w:, :] - img_2_cum[2 * w:, :-2 * w,
+                                                                               :] + img_2_cum[:-2 * w, :-2 * w, :]) / (
+                       4 * w ** 2)
 
     img_1 = img_1[w:-w, w:-w, :] - img_1_mu
     img_2 = img_2[w:-w, w:-w, :] - img_2_mu
@@ -53,9 +57,9 @@ def xcorr(img_1, img_2, half_width):
     img_1 = np.pad(img_1.astype(np.float64), ((w, w), (w, w), (0, 0)))
     img_2 = np.pad(img_2.astype(np.float64), ((w, w), (w, w), (0, 0)))
 
-    i2 = img_1**2
-    j2 = img_2**2
-    ij = img_1*img_2
+    i2 = img_1 ** 2
+    j2 = img_2 ** 2
+    ij = img_1 * img_2
 
     i2_cum = np.zeros(i2.shape)
     j2_cum = np.zeros(j2.shape)
@@ -68,15 +72,18 @@ def xcorr(img_1, img_2, half_width):
     for i in range(ij_cum.shape[-1]):
         ij_cum[:, :, i] = integral(ij[:, :, i]).astype(np.float64)
 
-    sig2_ij_tot = (ij_cum[2*w:, 2*w:, :] - ij_cum[:-2*w, 2*w:, :] - ij_cum[2*w:, :-2*w, :] + ij_cum[:-2*w, :-2*w, :])
-    sig2_ii_tot = (i2_cum[2*w:, 2*w:, :] - i2_cum[:-2*w, 2*w:, :] - i2_cum[2*w:, :-2*w, :] + i2_cum[:-2*w, :-2*w, :])
-    sig2_jj_tot = (j2_cum[2*w:, 2*w:, :] - j2_cum[:-2*w, 2*w:, :] - j2_cum[2*w:, :-2*w, :] + j2_cum[:-2*w, :-2*w, :])
+    sig2_ij_tot = (ij_cum[2 * w:, 2 * w:, :] - ij_cum[:-2 * w, 2 * w:, :] - ij_cum[2 * w:, :-2 * w, :] + ij_cum[:-2 * w,
+                                                                                                         :-2 * w, :])
+    sig2_ii_tot = (i2_cum[2 * w:, 2 * w:, :] - i2_cum[:-2 * w, 2 * w:, :] - i2_cum[2 * w:, :-2 * w, :] + i2_cum[:-2 * w,
+                                                                                                         :-2 * w, :])
+    sig2_jj_tot = (j2_cum[2 * w:, 2 * w:, :] - j2_cum[:-2 * w, 2 * w:, :] - j2_cum[2 * w:, :-2 * w, :] + j2_cum[:-2 * w,
+                                                                                                         :-2 * w, :])
 
     sig2_ij_tot = np.clip(sig2_ij_tot, ep, sig2_ij_tot.max())
     sig2_ii_tot = np.clip(sig2_ii_tot, ep, sig2_ii_tot.max())
     sig2_jj_tot = np.clip(sig2_jj_tot, ep, sig2_jj_tot.max())
 
-    L = sig2_ij_tot / ((sig2_ii_tot*sig2_jj_tot)**0.5 + ep)
+    L = sig2_ij_tot / ((sig2_ii_tot * sig2_jj_tot) ** 0.5 + ep)
 
     return L
 
@@ -102,8 +109,7 @@ def xcorr_torch(img_1, img_2, half_width, device):
         L : Torch Tensor
             The cross-correlation map between img_1 and img_2
 
-        """
-
+    """
     w = ceil(half_width)
     ep = 1e-20
     img_1 = img_1.type(torch.DoubleTensor)
@@ -118,8 +124,10 @@ def xcorr_torch(img_1, img_2, half_width, device):
     img_1_cum = torch.cumsum(torch.cumsum(img_1, dim=-1), dim=-2)
     img_2_cum = torch.cumsum(torch.cumsum(img_2, dim=-1), dim=-2)
 
-    img_1_mu = (img_1_cum[:, :, 2*w:, 2*w:] - img_1_cum[:, :, :-2*w, 2*w:] - img_1_cum[:, :, 2*w:, :-2*w] + img_1_cum[:, :, :-2*w, :-2*w]) / (4*w**2)
-    img_2_mu = (img_2_cum[:, :, 2*w:, 2*w:] - img_2_cum[:, :, :-2*w, 2*w:] - img_2_cum[:, :, 2*w:, :-2*w] + img_2_cum[:, :, :-2*w, :-2*w]) / (4*w**2)
+    img_1_mu = (img_1_cum[:, :, 2 * w:, 2 * w:] - img_1_cum[:, :, :-2 * w, 2 * w:] - img_1_cum[:, :, 2 * w:, :-2 * w] +
+                img_1_cum[:, :, :-2 * w, :-2 * w]) / (4 * w ** 2)
+    img_2_mu = (img_2_cum[:, :, 2 * w:, 2 * w:] - img_2_cum[:, :, :-2 * w, 2 * w:] - img_2_cum[:, :, 2 * w:, :-2 * w] +
+                img_2_cum[:, :, :-2 * w, :-2 * w]) / (4 * w ** 2)
 
     img_1 = img_1[:, :, w:-w, w:-w] - img_1_mu
     img_2 = img_2[:, :, w:-w, w:-w] - img_2_mu
@@ -127,13 +135,16 @@ def xcorr_torch(img_1, img_2, half_width, device):
     img_1 = F.pad(img_1, (w, w, w, w))
     img_2 = F.pad(img_2, (w, w, w, w))
 
-    i2_cum = torch.cumsum(torch.cumsum(img_1**2, dim=-1), dim=-2)
-    j2_cum = torch.cumsum(torch.cumsum(img_2**2, dim=-1), dim=-2)
-    ij_cum = torch.cumsum(torch.cumsum(img_1*img_2, dim=-1), dim=-2)
+    i2_cum = torch.cumsum(torch.cumsum(img_1 ** 2, dim=-1), dim=-2)
+    j2_cum = torch.cumsum(torch.cumsum(img_2 ** 2, dim=-1), dim=-2)
+    ij_cum = torch.cumsum(torch.cumsum(img_1 * img_2, dim=-1), dim=-2)
 
-    sig2_ij_tot = (ij_cum[:, :, 2*w:, 2*w:] - ij_cum[:, :, :-2*w, 2*w:] - ij_cum[:, :, 2*w:, :-2*w] + ij_cum[:, :, :-2*w, :-2*w])
-    sig2_ii_tot = (i2_cum[:, :, 2*w:, 2*w:] - i2_cum[:, :, :-2*w, 2*w:] - i2_cum[:, :, 2*w:, :-2*w] + i2_cum[:, :, :-2*w, :-2*w])
-    sig2_jj_tot = (j2_cum[:, :, 2*w:, 2*w:] - j2_cum[:, :, :-2*w, 2*w:] - j2_cum[:, :, 2*w:, :-2*w] + j2_cum[:, :, :-2*w, :-2*w])
+    sig2_ij_tot = (ij_cum[:, :, 2 * w:, 2 * w:] - ij_cum[:, :, :-2 * w, 2 * w:] - ij_cum[:, :, 2 * w:, :-2 * w] +
+                   ij_cum[:, :, :-2 * w, :-2 * w])
+    sig2_ii_tot = (i2_cum[:, :, 2 * w:, 2 * w:] - i2_cum[:, :, :-2 * w, 2 * w:] - i2_cum[:, :, 2 * w:, :-2 * w] +
+                   i2_cum[:, :, :-2 * w, :-2 * w])
+    sig2_jj_tot = (j2_cum[:, :, 2 * w:, 2 * w:] - j2_cum[:, :, :-2 * w, 2 * w:] - j2_cum[:, :, 2 * w:, :-2 * w] +
+                   j2_cum[:, :, :-2 * w, :-2 * w])
 
     sig2_ij_tot = torch.clip(sig2_ij_tot, ep, sig2_ij_tot.max().item())
     sig2_ii_tot = torch.clip(sig2_ii_tot, ep, sig2_ii_tot.max().item())

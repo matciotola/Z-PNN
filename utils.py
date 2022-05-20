@@ -1,10 +1,12 @@
 import math
+from math import floor
+
 import numpy as np
 import torch
+import torch.nn as nn
+
 from cross_correlation import xcorr_torch
 from spectral_tools import gen_mtf
-import torch.nn as nn
-from math import floor
 
 
 def net_scope(kernel_size):

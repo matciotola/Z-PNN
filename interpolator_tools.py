@@ -1,4 +1,5 @@
 import math
+
 import numpy as np
 import scipy.ndimage.filters as ft
 import torch
@@ -33,7 +34,6 @@ def interp23tap(img, ratio):
             the interpolated img.
 
         """
-
     assert ((2 ** (round(math.log(ratio, 2)))) == ratio), 'Error: Only resize factors power of 2'
 
     r, c, b = img.shape
@@ -92,7 +92,6 @@ def interp23tap_torch(img, ratio, device):
            The interpolated img.
 
     """
-
     assert ((2 ** (round(math.log(ratio, 2)))) == ratio), 'Error: Only resize factors power of 2'
 
     r, c, b = img.shape

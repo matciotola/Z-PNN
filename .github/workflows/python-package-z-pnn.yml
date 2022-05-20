@@ -1,0 +1,38 @@
+name: Python Package using Conda
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-18.04
+    strategy:
+      max-parallel: 5
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+        architecture: "x64"
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Install dependencies
+      run: |
+        conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
+        conda install numpy tqdm gdal matplotlib -c conda-forge
+        conda install scikit-image scipy scikit-learn -c conda-forge
+    - name: Test with pytest
+      run: |
+        conda install pytest
+        conda install -c conda-forge coverage 
+    - name: Run tests and collect coverage
+      run: |
+        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration
+        coverage xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+
+      
