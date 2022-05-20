@@ -25,4 +25,12 @@ jobs:
     - name: Test with pytest
       run: |
         conda install pytest
-        pytest main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration
+        conda install -c conda-forge coverage 
+        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration
+        coverage xml
+    
+    - name: "Upload coverage to Codecov"
+    - uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
