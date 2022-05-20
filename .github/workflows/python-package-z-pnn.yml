@@ -30,7 +30,7 @@ jobs:
         conda install -c conda-forge coverage 
     - name: Run tests and collect coverage
       run: |
-        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration
+        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration --use_cpu --from_scratch
         coverage xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
