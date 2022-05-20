@@ -21,7 +21,8 @@ jobs:
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        conda create -n base python=3.10 pytorch torchvision torchaudio cudatoolkit=10.2 scikit-image scipy scikit-learn matplotlib numpy tqdm gdal -c pytorch -c conda-forge
+        conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
+        conda install scikit-image scipy scikit-learn matplotlib numpy tqdm gdal -c conda-forge
     - name: Test with pytest
       run: |
         conda install pytest
