@@ -32,9 +32,9 @@ jobs:
       run: |
         coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration --use_cpu --from_scratch
         coverage xml --epochs 2
-        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m PanNet-TA-FR --coregistration --use_cpu --from_scratch --RR --epochs 2
+        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m PanNet-TA-FR --coregistration --use_cpu --from_scratch --RR
         coverage xml
-        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-DRPNN --coregistration --use_cpu --from_scratch --RR --epochs 2 --show_results --save_weights -lr 1e-5 -b 0.5
+        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-DRPNN --coregistration --use_cpu --from_scratch --RR --show_results --save_weights -lr 1e-5 -b 0.5
         coverage xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
