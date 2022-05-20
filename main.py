@@ -102,7 +102,7 @@ def main_zpnn(args):
 
     weight_path = 'weights/' + s.sensor + '_' + method + '_model.tar'
     if os.path.exists(weight_path) and not from_scratch_flag:
-        net.load_state_dict(torch.load(weight_path))
+        net.load_state_dict(torch.load(weight_path), map_location=device)
     else:
         print('Training from scratch will be performed.')
 
