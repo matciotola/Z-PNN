@@ -30,11 +30,10 @@ jobs:
         conda install -c conda-forge coverage 
     - name: Run tests and collect coverage
       run: |
-        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration --use_cpu --from_scratch --epochs 2
-        coverage xml 
-        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m PanNet-TA-FR --coregistration --use_cpu --from_scratch --epochs 2
-        coverage xml
-        coverage run main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-DRPNN --coregistration --use_cpu --from_scratch --show_results --save_weights -lr 1e-5 -b 0.5 --epochs 2
+        coverage run -p main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --coregistration --use_cpu --from_scratch --epochs 2 
+        coverage run -p main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m PanNet-TA-FR --use_cpu --from_scratch --epochs 2
+        coverage run -p main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-DRPNN --coregistration --use_cpu --from_scratch --show_results --save_weights -lr 1e-5 -b 0.5 --epochs 2
+        coverage combine
         coverage xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2

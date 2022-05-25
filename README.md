@@ -1,6 +1,7 @@
 # Pansharpening by convolutional neural networks in the full resolution framework
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/2c50e61e07554cd1a63a0e97d61a54a3)](https://www.codacy.com/gh/matciotola/Z-PNN/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=matciotola/Z-PNN&amp;utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/matciotola/Z-PNN/branch/master/graph/badge.svg?token=PN37XP3H3Z)](https://codecov.io/gh/matciotola/Z-PNN)
 [![build](https://github.com/matciotola/Z-PNN/actions/workflows/python-package-z-pnn.yml/badge.svg)](https://github.com/matciotola/Z-PNN/actions/workflows/python-package-z-pnn.yml)
 
 
