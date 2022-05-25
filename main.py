@@ -28,7 +28,7 @@ def main_zpnn(args):
 
     if epochs == 1 and 'Z-' in method:
         epochs = 100
-    elif epochs == 1 and 'FT-Z' in method:
+    elif epochs == 1 and 'TA-FR' in method:
         epochs = 2000
 
     gpu_number = str(args.gpu_number)
