@@ -215,7 +215,8 @@ def main_zpnn(args):
 
     # Testing
     I_inp = I_inp.to(device)
-    net.load_state_dict(torch.load(path_min_loss))
+    if epochs != 0 and os.path.exists(path_min_loss):
+        net.load_state_dict(torch.load(path_min_loss))
     net.eval()
     outputs = net(I_inp)
 
