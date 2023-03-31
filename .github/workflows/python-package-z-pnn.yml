@@ -24,6 +24,11 @@ jobs:
         conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
         conda install numpy tqdm gdal matplotlib -c conda-forge
         conda install scikit-image scipy scikit-learn -c conda-forge
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
+        sudo apt-get install gcc-4.9
+        sudo apt-get install --only-upgrade libstdc++6
+        
     - name: Test with pytest
       run: |
         conda install pytest
