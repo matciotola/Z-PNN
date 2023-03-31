@@ -24,7 +24,8 @@ jobs:
         conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
         conda install numpy tqdm gdal matplotlib -c conda-forge
         conda install scikit-image scipy scikit-learn -c conda-forge
-        sudo apt-get install --only-upgrade libstdc++6
+        conda install -c conda-forge gcc=12.1.0
+        conda install -c conda-forge libstdcxx-ng=12
         
     - name: Test with pytest
       run: |
