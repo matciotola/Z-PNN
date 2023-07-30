@@ -25,9 +25,7 @@ def net_scope(kernel_size):
 
         """
 
-    scope = 0
-    for i in range(len(kernel_size)):
-        scope += math.floor(kernel_size[i] / 2)
+    scope = np.sum([math.floor(k / 2) for k in kernel_size])
     return scope
 
 
