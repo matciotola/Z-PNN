@@ -3,7 +3,6 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2111.08334)
 [![GitHub Stars](https://img.shields.io/github/stars/matciotola/Z-PNN?style=social)](https://github.com/matciotola/Z-PNN)
-![visitors](https://visitor-badge.glitch.me/badge?page_id=matciotola/Z-PNN)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/2c50e61e07554cd1a63a0e97d61a54a3)](https://www.codacy.com/gh/matciotola/Z-PNN/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=matciotola/Z-PNN&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/matciotola/Z-PNN/branch/master/graph/badge.svg?token=PN37XP3H3Z)](https://codecov.io/gh/matciotola/Z-PNN)
 [![build](https://github.com/matciotola/Z-PNN/actions/workflows/python-package-z-pnn.yml/badge.svg)](https://github.com/matciotola/Z-PNN/actions/workflows/python-package-z-pnn.yml)
@@ -47,7 +46,7 @@ terms of the license, as specified in the document [`LICENSE`](https://github.co
 (included in this package) 
 
 ## Prerequisites
-All the functions and scripts were tested on Windows and Ubuntu O.S., with these constrains:
+All the functions and scripts were tested on Windows and Ubuntu O.S., with these constraints:
 
 - Python 3.9 
 - PyTorch 1.8.1 or 1.10.0
@@ -86,7 +85,7 @@ python main.py -i example/WV3_example.mat -o ./Output_Example -s WV3 -m Z-PNN --
 
 ## Usage
 
-### Before to start
+### Before start
 To test this algorithm it is needed to create a `.mat` file. It must contain:
 - `I_MS_LR`: Original Multi-Spectral Stack in channel-last configuration (Dimensions: H x W x B);
 - `I_PAN`: Original Panchromatic band, without the third dimension (Dimensions: H x W).
@@ -94,13 +93,13 @@ To test this algorithm it is needed to create a `.mat` file. It must contain:
 It is possible to convert the GeoTIff images into the required format with the scripts provided in [`tiff_mat_conversion.py`](https://github.com/matciotola/Z-PNN/blob/master/tiff_mat_conversion.py): 
 
 ```
-python tiff_mat_conversion.py -m Tiff2Mat -ms /path/to/ms.tif -pan /path/to/ms.tif  -o path/to/file.mat
+python tiff_mat_conversion.py -m Tiff2Mat -ms /path/to/ms.tif -pan /path/to/pan.tif  -o path/to/file.mat
 ```
 
 Please refer to `--help` for more details. 
 
 ### Testing
-The easiest command to use the algorithm on full resolution data:
+The easiest command to use the algorithm on full-resolution data:
 
 ```
 python main.py -i path/to/file.mat -s sensor_name -m method
